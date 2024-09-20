@@ -1,0 +1,6 @@
+*.log
+gotest-report.out
+gotest-report.json
+golint-report.out
+.vscode
+.idea

@@ -1,0 +1,64 @@
+GET http://localhost:8081/api/v1/tags
+
+###
+
+POST http://localhost:8081/api/v1/tags
+
+{ "name": "blub" }
+
+
+###
+
+GET http://localhost:8081/api/v1/media
+
+###
+
+POST http://localhost:8081/api/v1/media
+Content-Type: multipart/form-data; boundary=boundary12345
+
+--boundary12345
+Content-Disposition: form-data; name="name"
+
+ExampleName
+--boundary12345
+Content-Disposition: form-data; name="tag_ids[]"
+
+tag1
+--boundary12345
+Content-Disposition: form-data; name="tag_ids[]"
+
+tag2
+--boundary12345
+Content-Disposition: form-data; name="file"; filename="blub"
+Content-Type: application/octet-stream
+
+blub
+--boundary12345--
+
+###
+
+POST http://localhost:8081/api/v1/media
+Content-Type: multipart/form-data; boundary=boundary12345
+
+--boundary12345
+Content-Disposition: form-data; name="name"
+
+ExampleName
+--boundary12345
+Content-Disposition: form-data; name="tag_ids[]"
+
+tag1
+--boundary12345
+Content-Disposition: form-data; name="file"; filename="blub2"
+Content-Type: application/octet-stream
+
+blub2
+--boundary12345--
+
+###
+
+GET http://localhost:8081/api/v1/media?tag_id=tag2
+
+###
+
+GET http://localhost:8081/api/v1/media?tag_id=tag2
