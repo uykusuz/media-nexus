@@ -86,5 +86,5 @@ func run(log logger.Logger, envPrefix string) error {
 	}
 
 	log.Info("starting API ...")
-	return ahttp.StartAPI(log, config.HTTPPort, mediaService, tags)
+	return ahttp.StartAPI(log, config.BaseUrl, config.HTTPPort, mediaService, tags)
 }

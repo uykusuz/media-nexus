@@ -1,0 +1,156 @@
+basePath: /api/v1
+definitions:
+  ahmodel.GetMediaResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/ahmodel.MediaItem'
+        type: array
+    type: object
+  ahmodel.MediaItem:
+    properties:
+      file_url:
+        type: string
+      name:
+        type: string
+      tag_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  ahmodel.PostMediaResponse:
+    properties:
+      media_id:
+        type: string
+    type: object
+  ahmodel.PostTagsRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  ahmodel.PostTagsResponse:
+    properties:
+      tag_id:
+        type: string
+    type: object
+  ahmodel.Tag:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  ahttp.postMediaRequest:
+    properties:
+      file:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      tagIds:
+        items:
+          type: string
+        type: array
+    type: object
+host: localhost:8081
+info:
+  contact:
+    email: broenner@hintergarten.de
+    name: Boris Brönner
+    url: https://hintergarten.de
+  description: API to serve media assets
+  license:
+    name: MIT
+  title: media-nexus API
+  version: "1.0"
+paths:
+  /api/v1/media:
+    get:
+      description: query media items based on some parameters
+      parameters:
+      - description: tag ID to search for
+        in: query
+        name: tag_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ahmodel.GetMediaResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Query media items
+      tags:
+      - media
+    post:
+      consumes:
+      - multipart/form-data
+      description: create a new media with a list of tags and a name
+      parameters:
+      - description: media to be created
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ahttp.postMediaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ahmodel.PostMediaResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Create media
+      tags:
+      - media
+  /api/v1/tags:
+    get:
+      description: retrieve all tags
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ahmodel.Tag'
+            type: array
+      summary: List tags
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      description: create a new tag with the given name
+      parameters:
+      - description: tag to be created
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ahmodel.PostTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ahmodel.PostTagsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Create tag
+      tags:
+      - tags
+swagger: "2.0"

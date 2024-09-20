@@ -38,6 +38,17 @@ func (e *tagsEndpoint) HandleTags(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handlePost godoc
+//
+//	@Summary		Create tag
+//	@Description	create a new tag with the given name
+//	@Tags			tags
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		ahmodel.PostTagsRequest	true	"tag to be created"
+//	@Success		200		{object}	ahmodel.PostTagsResponse
+//	@Failure		400		{object}	string
+//	@Router			/api/v1/tags [post]
 func (e *tagsEndpoint) handlePost(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var data ahmodel.PostTagsRequest
 	err := httputils.ParseJSONRequestBody(r.Body, &data)
@@ -57,6 +68,14 @@ func (e *tagsEndpoint) handlePost(ctx context.Context, w http.ResponseWriter, r 
 	httputils.RespondWithJSON(http.StatusOK, response, w, e.log, true)
 }
 
+// handleGet godoc
+//
+//	@Summary		List tags
+//	@Description	retrieve all tags
+//	@Tags			tags
+//	@Produce		json
+//	@Success		200	{object}	[]ahmodel.Tag
+//	@Router			/api/v1/tags [get]
 func (e *tagsEndpoint) handleGet(ctx context.Context, w http.ResponseWriter, _ *http.Request) {
 	tags, err := e.tags.ListTags(ctx)
 	if httputils.HandleError(err, w, e.log) {

@@ -31,3 +31,11 @@ func IsValidURLProperty(container string, name string, value string) (*url.URL, 
 
 	return url, nil
 }
+
+func IsValidStringProperty(containerType string, propertyName string, value string) error {
+	if len(value) < 1 {
+		return errortypes.NewBadUserInputf("%v in %v empty, but should not", propertyName, containerType)
+	}
+
+	return nil
+}

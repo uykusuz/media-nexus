@@ -58,3 +58,8 @@ check_format:
 	@echo -n "check line length: "
 	$(GOLINES) --dry-run .
 	test "$(shell $(GOLINES) --dry-run . | wc -l)" -eq "0"
+
+.PHONY: docs
+docs:
+	swag fmt adapters/primary/ahttp
+	swag init -g adapters/primary/ahttp/api.go

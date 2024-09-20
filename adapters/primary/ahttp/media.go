@@ -47,6 +47,23 @@ func (e *mediaEndpoint) HandleMedia(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type postMediaRequest struct {
+	Name string
+	TagIds []string
+	File []byte
+}
+
+// handlePost godoc
+//
+//	@Summary		Create media
+//	@Description	create a new media with a list of tags and a name
+//	@Tags			media
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			request	body		postMediaRequest	true	"media to be created"
+//	@Success		200		{object}	ahmodel.PostMediaResponse
+//	@Failure		400		{object}	string
+//	@Router			/api/v1/media [post]
 func (e *mediaEndpoint) handlePost(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(e.maxUploadFileSizeMB << 20); err != nil {
 		http.Error(w, fmt.Sprintf("invalid multipart form: %v", err), http.StatusBadRequest)
@@ -85,6 +102,16 @@ func (e *mediaEndpoint) handlePost(ctx context.Context, w http.ResponseWriter, r
 	httputils.RespondWithJSON(http.StatusOK, response, w, e.log, true)
 }
 
+// handleGet godoc
+//
+//	@Summary		Query media items
+//	@Description	query media items based on some parameters
+//	@Tags			media
+//	@Produce		json
+//	@Param			tag_id	query		string	true	"tag ID to search for"
+//	@Success		200		{object}	ahmodel.GetMediaResponse
+//	@Failure		400		{object}	string
+//	@Router			/api/v1/media [get]
 func (e *mediaEndpoint) handleGet(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	tagID := r.URL.Query().Get("tag_id")
 
