@@ -1,8 +1,15 @@
 # media-nexus
 
+## Table of Contents
+
+* [Overview](#overview)
+* [Architecture](#architecture)
+* [Build and Run](#build-and-run)
+* [Implementation Details](#implementation-details)
+
 ## TODO
 
-* cleanup job for metadata zombies
+* document all features & describe api more
 
 ## Overview
 
@@ -16,7 +23,13 @@ The API provides the following functionalities:
   * media is a tuple (name, list of tag IDs, picture)
 * search media by tag IDs
 
+### HTTP API
+
+Run the service (cf. [Build and Run](#build-and-run)) and then navigate to `http://localhost:8081/swagger`.
+
 ## Architecture
+
+### Services
 
 ```mermaid
 graph LR
@@ -33,9 +46,27 @@ graph LR
   a --> blobs
 ```
 
-## API Documentation
+### Model
 
-Run the service (cf. [Build and Run](#build-and-run)) and then navigate to `http://localhost:8081/swagger`.
+```mermaid
+graph LR
+  subgraph mongodb
+    tags[(tags)]
+    mmd[(media metadata)]
+  end
+  subgraph s3
+    blobs[(media blobs)]
+  end
+
+  subgraph media item
+    metadata --> mmd
+    data --> blobs
+  end
+
+  subgraph tag
+    t[data] --> tags
+  end
+```
 
 ## Build and Run
 
@@ -68,17 +99,20 @@ AWS_PROFILE=<aws profile> MEDIANEXUS_MONGODBURI=<mongo uri> ./media-nexus local-
 
 ### Documentation
 
-Run:
-
 ```bash
 make docs
 ```
 
 This will regenerate the documentation. Now relaunch the service and navigate to `http://localhost:8081/swagger`.
 
-## Next steps
+## Implementation Details
 
-* decide: handling of multiple metadatas of same file checksum? design decision needed
+### Design Choices
+
+### Next steps
+
+* decide: handling of multiple metadatas of same file checksum?
+  * right now: checksum is ID
 
 * deadlines on request contexts
 * validate tag ids on create media
