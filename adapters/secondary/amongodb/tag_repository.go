@@ -116,3 +116,16 @@ func (r *tagRepository) ListTags(ctx context.Context) ([]*model.Tag, error) {
 
 	return tags, nil
 }
+
+func (r *tagRepository) DeleteTag(ctx context.Context, tagId model.TagId) error {
+	collection := r.client.Database(r.database).Collection(r.collection)
+
+	filter := bson.M{"_id": tagId}
+
+	_, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return errortypes.NewUpstreamCommunicationErrorf("mongodb delete", "failed to delete tag '%v': %v", tagId, err)
+	}
+
+	return err
+}

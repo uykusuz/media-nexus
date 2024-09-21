@@ -32,13 +32,19 @@ compile:
 
 .PHONY: test
 test:
-	# count=1: disable test caching
-	$(GOTEST) -v -timeout $(TEST_TIMEOUT) -count=1 $(shell go list ./...) | tee gotest-report.out ; exit $${PIPESTATUS[0]}
+# count=1: disable test caching
+	$(GOTEST) -v -timeout $(TEST_TIMEOUT) -count=1 $(shell go list ./... | grep -v /integrationtests) | tee gotest-report.out ; exit $${PIPESTATUS[0]}
 	cat gotest-report.out | go tool test2json > gotest-report.json
+
+.PHONY: test.integration
+test.integration:
+# count=1: disable test caching
+	$(GOTEST) -v -timeout $(TEST_TIMEOUT) -count=1 ./integrationtests/... | tee gotest-report-integration.out ; exit $${PIPESTATUS[0]}
+	cat gotest-report-integration.out | go tool test2json > gotest-report-integration.json
 
 .PHONY: clean
 clean:
-	rm -f gotest-report.out gotest-report.json golint-report.out
+	rm -f gotest-report.out gotest-report.json golint-report.out gotest-report-integration.out gotest-report-integration.json
 	$(GOCLEAN) -v .
 	rm -f $(BINARY_NAME)
 
@@ -46,13 +52,13 @@ clean:
 lint:
 	set -o pipefail; golangci-lint run | tee golint-report.out
 
-.PHONY: apply_format
-apply_format:
+.PHONY: format.apply
+format.apply:
 	$(GOFMT) -s -w .
 	$(GOLINES) .
 
-.PHONY: check_format
-check_format:
+.PHONY: format.check
+format.check:
 	@echo -n "check format: "
 	test -z "$(shell $(GOFMT) -s -l .)"
 	@echo -n "check line length: "

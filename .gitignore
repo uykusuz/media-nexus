@@ -4,3 +4,5 @@ gotest-report.json
 golint-report.out
 .vscode
 .idea
+gotest-report-integration.json
+gotest-report-integration.out
