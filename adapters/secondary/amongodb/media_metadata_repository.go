@@ -269,3 +269,16 @@ func (r *mediaMetadataRepository) Get(ctx context.Context, id model.MediaId) (mo
 
 	return doc.ToModel()
 }
+
+func (r *mediaMetadataRepository) DeleteAll(ctx context.Context, ids []model.MediaId) error {
+	collection := r.client.Database(r.database).Collection(r.collection)
+
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+
+	_, err := collection.DeleteMany(ctx, filter)
+	if err != nil {
+		return errortypes.NewUpstreamCommunicationErrorf("mongodb delete", "failed to delete media metadata: %v", err)
+	}
+
+	return err
+}

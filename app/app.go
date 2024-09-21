@@ -22,6 +22,8 @@ type App interface {
 	Run() error
 
 	TagRepo() ports.TagRepository
+	MediaRepo() ports.MediaRepository
+	MediaMetadataRepo() ports.MediaMetadataRepository
 }
 
 func NewApp(log logger.Logger, config *config.Configuration) App {
@@ -35,9 +37,11 @@ type app struct {
 	log    logger.Logger
 	config *config.Configuration
 
-	runners      []util.Runner
-	mediaService services.MediaService
-	tagRepo      ports.TagRepository
+	runners           []util.Runner
+	mediaService      services.MediaService
+	tagRepo           ports.TagRepository
+	mediaRepo         ports.MediaRepository
+	mediaMetadataRepo ports.MediaMetadataRepository
 }
 
 func (a *app) Setup() error {
@@ -59,7 +63,8 @@ func (a *app) Setup() error {
 	}
 
 	a.tagRepo = amongodb.NewTagRepository(mongodbClient, a.config.MediaDatabase, a.config.MediaTagCollection)
-	mediaMetadata, mediaMetadataRunner := amongodb.NewMediaMetadataRepository(
+	var mediaMetadataRunner util.Runner
+	a.mediaMetadataRepo, mediaMetadataRunner = amongodb.NewMediaMetadataRepository(
 		mongodbClient,
 		a.config.MediaDatabase,
 		a.config.MediaMetadataCollection,
@@ -67,11 +72,11 @@ func (a *app) Setup() error {
 	)
 	a.runners = append(a.runners, mediaMetadataRunner)
 
-	media := aaws.NewMediaRepository(s3Client, presignClient, a.config.MediaBucket)
+	a.mediaRepo = aaws.NewMediaRepository(s3Client, presignClient, a.config.MediaBucket)
 	a.mediaService = services.NewMediaService(
 		a.tagRepo,
-		mediaMetadata,
-		media,
+		a.mediaMetadataRepo,
+		a.mediaRepo,
 		a.config.GetMediaUrlLifetime,
 		a.config.IncompleteMediaMetadataLifetime,
 	)
@@ -93,4 +98,12 @@ func (a *app) Run() error {
 
 func (a *app) TagRepo() ports.TagRepository {
 	return a.tagRepo
+}
+
+func (a *app) MediaRepo() ports.MediaRepository {
+	return a.mediaRepo
+}
+
+func (a *app) MediaMetadataRepo() ports.MediaMetadataRepository {
+	return a.mediaMetadataRepo
 }

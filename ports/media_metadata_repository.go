@@ -11,4 +11,5 @@ type MediaMetadataRepository interface {
 	SetUploadComplete(ctx context.Context, metadata model.MediaId, complete bool) error
 	FindByTagId(ctx context.Context, id model.TagId) ([]model.MediaMetadata, error)
 	FindByChecksum(ctx context.Context, checksum string) (model.MediaMetadata, error)
+	DeleteAll(ctx context.Context, ids []model.MediaId) error
 }

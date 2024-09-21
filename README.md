@@ -7,10 +7,6 @@
 * [Build and Run](#build-and-run)
 * [Design Choices](#design-choices)
 
-## TODO
-
-* finish tests
-
 ## Overview
 
 media-nexus is a simple application to create media and tags through an HTTP API.
@@ -160,6 +156,22 @@ and a certain time has passed, we continue to re-add it. Else we assume it must 
 
 Furthermore we add a partial TTL index to MongoDB to the metadata repository to remove those docs that are incomplete
 and it's last update time is very long ago.
+
+#### Test Storage
+
+We need to tell the tests where to store the data.
+
+* option a) create new collections & buckets per whole test run
+  * could be a bit crazy to create them for each run
+  * besides, creation could take longer, especially when doing it often
+  * also could incur additional costs (especially buckets)
+* option b) have test collections & buckets
+  * configure test collections & buckets
+  * let the tests do cleanup
+  * have monitoring on the size of these test collections & buckets
+
+I went for option b) because it seems simpler architectural wise,
+might have less overhead and might cost less.
 
 ### Technology Choices
 

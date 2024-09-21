@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	"go.step.sm/crypto/randutil"
 )
 
 type E2ETestSuite struct {
@@ -89,8 +90,10 @@ func (s *E2ETestSuite) TearDownSuite() {
 	p.Signal(syscall.SIGINT)
 }
 
-func (s *E2ETestSuite) CreateServerUrl(path string) string {
-	return fmt.Sprintf("%v:%v/api/v1%v", s.config.BaseUrl, s.config.HTTPPort, path)
+// CreateServerUrl will append the given suffix to the base url of the API.
+func (s *E2ETestSuite) CreateServerUrl(format string, a ...interface{}) string {
+	suffix := fmt.Sprintf(format, a...)
+	return fmt.Sprintf("%v:%v/api/v1%v", s.config.BaseUrl, s.config.HTTPPort, suffix)
 }
 
 func (s *E2ETestSuite) App() app.App {
@@ -103,4 +106,10 @@ func (s *E2ETestSuite) Context() context.Context {
 
 func (s *E2ETestSuite) Client() *http.Client {
 	return s.client
+}
+
+func (s *E2ETestSuite) GenerateAlphanumeric(length int) string {
+	str, err := randutil.Alphanumeric(length)
+	s.Require().NoError(err)
+	return str
 }

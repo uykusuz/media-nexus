@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"go.step.sm/crypto/randutil"
 )
 
 type tagsE2ETestSuite struct {
@@ -25,7 +24,7 @@ func TestTags(t *testing.T) {
 func (s *tagsE2ETestSuite) TestCreateTag() {
 	ctx := s.Context()
 
-	tagId := s.createTag(s.generateTagname())
+	tagId := s.createTag(s.GenerateAlphanumeric(10))
 
 	err := s.App().TagRepo().DeleteTags(ctx, []model.TagId{tagId})
 	s.Require().NoError(err)
@@ -34,7 +33,7 @@ func (s *tagsE2ETestSuite) TestCreateTag() {
 func (s *tagsE2ETestSuite) TestCreateTagIdempotency() {
 	ctx := s.Context()
 
-	tagName := s.generateTagname()
+	tagName := s.GenerateAlphanumeric(10)
 	tagId1 := s.createTag(tagName)
 
 	defer func() {
@@ -50,8 +49,8 @@ func (s *tagsE2ETestSuite) TestListTags() {
 	ctx := s.Context()
 
 	var tagIds []model.TagId
-	tagIds = append(tagIds, s.createTag(s.generateTagname()))
-	tagIds = append(tagIds, s.createTag(s.generateTagname()))
+	tagIds = append(tagIds, s.createTag(s.GenerateAlphanumeric(10)))
+	tagIds = append(tagIds, s.createTag(s.GenerateAlphanumeric(10)))
 
 	defer func() {
 		s.App().TagRepo().DeleteTags(ctx, tagIds)
@@ -61,12 +60,6 @@ func (s *tagsE2ETestSuite) TestListTags() {
 	for _, tagId := range tagIds {
 		s.Contains(storedTagIds, tagId)
 	}
-}
-
-func (s *tagsE2ETestSuite) generateTagname() string {
-	tagName, err := randutil.Alphanumeric(10)
-	s.Require().NoError(err)
-	return tagName
 }
 
 func (s *tagsE2ETestSuite) createTag(tagName string) model.TagId {

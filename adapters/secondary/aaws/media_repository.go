@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 type mediaRepository struct {
@@ -63,4 +64,30 @@ func (r *mediaRepository) GetMediaUrl(ctx context.Context, key string, lifetime 
 	}
 
 	return request.URL, err
+}
+
+func (r *mediaRepository) DeleteAll(ctx context.Context, keys []string) error {
+	err := ensureBucketExists(ctx, r.client, r.bucket)
+	if err != nil {
+		return err
+	}
+
+	objectIds := make([]types.ObjectIdentifier, 0, len(keys))
+	for _, key := range keys {
+		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(key)})
+	}
+
+	input := &s3.DeleteObjectsInput{
+		Bucket: aws.String(r.bucket),
+		Delete: &types.Delete{
+			Objects: objectIds,
+		},
+	}
+
+	_, err = r.client.DeleteObjects(ctx, input)
+	if err != nil {
+		return errortypes.NewInputOutputErrorf("failed to delete objects from bucket: %v", err)
+	}
+
+	return nil
 }
