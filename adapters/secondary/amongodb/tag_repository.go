@@ -2,19 +2,20 @@ package amongodb
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"media-nexus/errortypes"
 	"media-nexus/model"
 	"media-nexus/ports"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type tag struct {
-	ID   primitive.ObjectID `bson:"_id"  json:"id"`   // MongoDB ObjectId
-	Name string             `bson:"name" json:"name"` // Tag name
+type tagDocument struct {
+	ID   string `bson:"_id"`
+	Name string `bson:"name"`
 }
 
 func NewTagRepository(client *mongo.Client, database string, collection string) ports.TagRepository {
@@ -33,52 +34,68 @@ func (r *tagRepository) CreateTag(ctx context.Context, name string) (model.TagId
 		return "", err
 	}
 
-	return id.Hex(), nil
+	return id, nil
 }
 
-func (r *tagRepository) insertTagIfNotExists(ctx context.Context, name string) (primitive.ObjectID, error) {
+func createIdForName(name string) (string, error) {
+	hasher := sha256.New()
+	if _, err := hasher.Write([]byte(name)); err != nil {
+		return "", errortypes.NewInputOutputErrorf("failed to hash %v", name)
+	}
+
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
+func (r *tagRepository) insertTagIfNotExists(ctx context.Context, name string) (string, error) {
 	collection := r.client.Database(r.database).Collection(r.collection)
 
 	filter := bson.M{"name": name}
 
+	newId, err := createIdForName(name)
+	if err != nil {
+		return "", err
+	}
+
+	newTagDoc := &tagDocument{
+		ID:   newId,
+		Name: name,
+	}
+
 	update := bson.M{
-		"$setOnInsert": bson.M{"name": name},
+		"$setOnInsert": newTagDoc,
 	}
 
 	opts := options.Update().SetUpsert(true)
 
 	result, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
-		return primitive.NilObjectID, errortypes.NewUpstreamCommunicationErrorf("mongodb", "failed to upsert tag: %v", err)
+		return "", errortypes.NewUpstreamCommunicationErrorf("mongodb", "failed to upsert tag: %v", err)
 	}
 
 	if result.UpsertedCount > 0 {
-		if oid, ok := result.UpsertedID.(primitive.ObjectID); ok {
+		if oid, ok := result.UpsertedID.(string); ok {
 			return oid, nil
 		}
 
-		return primitive.NilObjectID, errortypes.NewUpstreamCommunicationErrorf(
+		return "", errortypes.NewUpstreamCommunicationErrorf(
 			"mongodb",
-			"failed to assert UpsertedID as ObjectID",
+			"failed to assert UpsertedID as string",
 		)
 	}
 
-	// If no document was inserted, find the existing document by name
+	// if no document was inserted, find the existing document by name
 
-	var existingDocument struct {
-		ID primitive.ObjectID `bson:"_id"`
-	}
-
-	err = collection.FindOne(ctx, filter).Decode(&existingDocument)
+	var existingTagDoc tagDocument
+	err = collection.FindOne(ctx, filter).Decode(&existingTagDoc)
 	if err != nil {
-		return primitive.NilObjectID, errortypes.NewUpstreamCommunicationErrorf(
+		return "", errortypes.NewUpstreamCommunicationErrorf(
 			"mongodb",
 			"failed to find existing tag: %v",
 			err,
 		)
 	}
 
-	return existingDocument.ID, nil
+	return existingTagDoc.ID, nil
 }
 
 func (r *tagRepository) ListTags(ctx context.Context) ([]*model.Tag, error) {
@@ -96,14 +113,14 @@ func (r *tagRepository) ListTags(ctx context.Context) ([]*model.Tag, error) {
 	var tags []*model.Tag
 
 	for cursor.Next(ctx) {
-		var tag tag
+		var tag tagDocument
 		err := cursor.Decode(&tag)
 		if err != nil {
 			return nil, errortypes.NewInputOutputErrorf("failed to decode mongodb tag: %v", err)
 		}
 
 		mTag := &model.Tag{
-			Id:   tag.ID.Hex(),
+			Id:   tag.ID,
 			Name: tag.Name,
 		}
 
@@ -117,15 +134,28 @@ func (r *tagRepository) ListTags(ctx context.Context) ([]*model.Tag, error) {
 	return tags, nil
 }
 
-func (r *tagRepository) DeleteTag(ctx context.Context, tagId model.TagId) error {
+func (r *tagRepository) DeleteTags(ctx context.Context, tagIds []model.TagId) error {
 	collection := r.client.Database(r.database).Collection(r.collection)
 
-	filter := bson.M{"_id": tagId}
+	filter := bson.M{"_id": bson.M{"$in": tagIds}}
 
-	_, err := collection.DeleteOne(ctx, filter)
+	_, err := collection.DeleteMany(ctx, filter)
 	if err != nil {
-		return errortypes.NewUpstreamCommunicationErrorf("mongodb delete", "failed to delete tag '%v': %v", tagId, err)
+		return errortypes.NewUpstreamCommunicationErrorf("mongodb delete", "failed to delete tags '%v': %v", tagIds, err)
 	}
 
 	return err
+}
+
+func (r *tagRepository) AllExist(ctx context.Context, ids []model.TagId) (bool, error) {
+	collection := r.client.Database(r.database).Collection(r.collection)
+
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+
+	count, err := collection.CountDocuments(ctx, filter)
+	if err := handleError(err); err != nil {
+		return false, err
+	}
+
+	return count == int64(len(ids)), nil
 }

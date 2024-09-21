@@ -8,5 +8,6 @@ import (
 type TagRepository interface {
 	CreateTag(ctx context.Context, name string) (model.TagId, error)
 	ListTags(ctx context.Context) ([]*model.Tag, error)
-	DeleteTag(ctx context.Context, id model.TagId) error
+	DeleteTags(ctx context.Context, ids []model.TagId) error
+	AllExist(ctx context.Context, ids []model.TagId) (bool, error)
 }
