@@ -144,7 +144,22 @@ on AWS.
   * nice to have: public URLs for retrieving
 
 So we want a blob storage of some sort in the cloud. Because that's persistent,
-redundant and easily scalable. For details more below.
+redundant and easily scalable. For more details see [Technology Choices](#technology-choices) below.
+
+#### Multi-Database "Transactions"
+
+We made the choice to store blobs in one DB and metadata for it in another. So we need to make sure we have sane state.
+We achieve this by doing the following when inserting the media:
+
+1) create the metadata with a last update time and a "upload incomplete" flag
+2) upload the blob
+3) clear the upload incomplete flag
+
+When media is inserted we check whether a metadata for the file's checksum exists. If it does, but is incomplete
+and a certain time has passed, we continue to re-add it. Else we assume it must still be uploading.
+
+Furthermore we add a partial TTL index to MongoDB to the metadata repository to remove those docs that are incomplete
+and it's last update time is very long ago.
 
 ### Technology Choices
 
