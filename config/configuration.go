@@ -16,7 +16,8 @@ type Configuration struct {
 	MediaTagCollection              string
 	MediaMetadataCollection         string
 	MediaBucket                     string
-	MediaUrlLifetime                time.Duration
+	MediaBucketRegion               string
+	GetMediaUrlLifetime             time.Duration
 	IncompleteMediaMetadataLifetime time.Duration
 }
 
@@ -29,8 +30,9 @@ func NewConfiguration() Configuration {
 		MediaTagCollection:              "tags",
 		MediaMetadataCollection:         "media_metadata",
 		MediaBucket:                     "hintergarten.de-media-nexus-media",
-		MediaUrlLifetime:                15 * 60 * time.Second,
-		IncompleteMediaMetadataLifetime: 4 * 60 * 60 * time.Second,
+		MediaBucketRegion:               "eu-central-1",
+		GetMediaUrlLifetime:             15 * 60 * time.Second,
+		IncompleteMediaMetadataLifetime: 60 * time.Second,
 	}
 }
 
@@ -60,6 +62,10 @@ func (c *Configuration) Validate() error {
 	}
 
 	if err := validation.IsValidStringProperty("<root>", "mediaBucket", c.MediaBucket); err != nil {
+		return err
+	}
+
+	if err := validation.IsValidStringProperty("<root>", "mediaBucketRegion", c.MediaBucketRegion); err != nil {
 		return err
 	}
 

@@ -50,7 +50,7 @@ func (a *app) Setup() error {
 		return errortypes.NewIllegalStatef("failed to load aws config: %v", err)
 	}
 
-	s3Client := s3.NewFromConfig(awsConfig)
+	s3Client := s3.NewFromConfig(awsConfig, aaws.WithRegion(a.config.MediaBucketRegion))
 	presignClient := s3.NewPresignClient(s3Client)
 
 	mongodbClient, err := amongodb.NewMongoDBClient(ctx, a.config.MongoDBURI)
@@ -72,7 +72,7 @@ func (a *app) Setup() error {
 		a.tagRepo,
 		mediaMetadata,
 		media,
-		a.config.MediaUrlLifetime,
+		a.config.GetMediaUrlLifetime,
 		a.config.IncompleteMediaMetadataLifetime,
 	)
 
