@@ -2,6 +2,8 @@ package config
 
 import (
 	"bytes"
+	"flag"
+	"os"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -15,13 +17,29 @@ func viperDecoderConfigOptions(config *mapstructure.DecoderConfig) {
 	config.ZeroFields = true
 }
 
-func ParseConfigurationFile(configFilePath string, envPrefix string) (*Configuration, error) {
+func LoadConfiguration() (*Configuration, error) {
+	envPrefix := "MEDIANEXUS"
+
+	configFile := os.Getenv(envPrefix + "_CONFIG")
+	if len(configFile) < 1 {
+		flag.Parse()
+		if flag.NArg() > 0 {
+			configFile = flag.Arg(0)
+		}
+	}
+
+	return parseConfiguration(configFile, envPrefix)
+}
+
+func parseConfiguration(configFilePath string, envPrefix string) (*Configuration, error) {
 	if err := initializeViper(envPrefix); err != nil {
 		return nil, err
 	}
 
-	if err := readConfigFile(configFilePath); err != nil {
-		return nil, err
+	if len(configFilePath) > 0 {
+		if err := readConfigFile(configFilePath); err != nil {
+			return nil, err
+		}
 	}
 
 	configuration := NewConfiguration()
