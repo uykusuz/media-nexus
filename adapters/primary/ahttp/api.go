@@ -1,14 +1,20 @@
 package ahttp
 
 import (
+	"context"
 	"fmt"
 	"media-nexus/logger"
 	"media-nexus/ports"
 	"media-nexus/services"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	_ "media-nexus/docs"
 
+	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -31,18 +37,46 @@ func StartAPI(
 	mediaService services.MediaService,
 	tags ports.TagRepository,
 ) error {
+	r := mux.NewRouter()
+
+	healthEndpoint := &healthEndpoint{log}
+	r.HandleFunc("/api/v1/health/live", healthEndpoint.GetHealthLive).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/health/ready", healthEndpoint.GetHealthReady).Methods(http.MethodGet)
+
 	mediaEndpoint := &mediaEndpoint{mediaService, log, 200}
-	http.HandleFunc("/api/v1/media", mediaEndpoint.HandleMedia)
+	r.HandleFunc("/api/v1/media", mediaEndpoint.GetMedia).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/media", mediaEndpoint.CreateMedia).Methods(http.MethodPost)
 
 	tagsEndpoint := &tagsEndpoint{tags, log}
-	http.HandleFunc("/api/v1/tags", tagsEndpoint.HandleTags)
+	r.HandleFunc("/api/v1/tags", tagsEndpoint.ListTags).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/tags", tagsEndpoint.CreateTag).Methods(http.MethodPost)
 
-	http.HandleFunc("/swagger/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/swagger/", func(w http.ResponseWriter, r *http.Request) {
 		swaggerHandler(baseUrl, port, w, r)
 	})
 
-	log.Infof("start serving http on port %v ...", port)
-	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%v", port),
+		Handler: r,
+	}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		log.Infof("start serving http on port %v ...", port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Errorf("ListenAndServe error: %v\n", err)
+		}
+	}()
+
+	<-stop
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	log.Infof("Shutting down server...")
+	return srv.Shutdown(ctx)
 }
 
 func swaggerHandler(baseUrl string, port int, w http.ResponseWriter, r *http.Request) {

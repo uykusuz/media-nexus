@@ -11,7 +11,6 @@ import (
 	"media-nexus/services"
 	"media-nexus/util"
 	"net/http"
-	"strings"
 )
 
 type mediaEndpoint struct {
@@ -32,21 +31,6 @@ func newMediaEndpoint(
 	return &mediaEndpoint{mediaService, log, maxUploadFileSizeMB}, nil
 }
 
-func (e *mediaEndpoint) HandleMedia(w http.ResponseWriter, r *http.Request) {
-	ctx := util.WithLogger(r.Context(), e.log)
-
-	switch r.Method {
-	case http.MethodPost:
-		e.handlePost(ctx, w, r)
-	case http.MethodGet:
-		e.handleGet(ctx, w, r)
-	default:
-		w.Header().Set("Allow", strings.Join([]string{http.MethodPost, http.MethodGet}, ","))
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-}
-
 type postMediaRequest struct {
 	Name   string
 	TagIds []string
@@ -54,7 +38,11 @@ type postMediaRequest struct {
 	File []byte
 }
 
-// handlePost godoc
+func (e *mediaEndpoint) createContext(r *http.Request) context.Context {
+	return util.WithLogger(r.Context(), e.log)
+}
+
+// CreateMedia godoc
 //
 //	@Summary		Create media
 //	@Description	create a new media with a list of tags and a name
@@ -65,7 +53,9 @@ type postMediaRequest struct {
 //	@Success		200		{object}	ahmodel.PostMediaResponse
 //	@Failure		400		{object}	string
 //	@Router			/api/v1/media [post]
-func (e *mediaEndpoint) handlePost(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (e *mediaEndpoint) CreateMedia(w http.ResponseWriter, r *http.Request) {
+	ctx := e.createContext(r)
+
 	if err := r.ParseMultipartForm(e.maxUploadFileSizeMB << 20); err != nil {
 		http.Error(w, fmt.Sprintf("invalid multipart form: %v", err), http.StatusBadRequest)
 		return
@@ -103,7 +93,7 @@ func (e *mediaEndpoint) handlePost(ctx context.Context, w http.ResponseWriter, r
 	httputils.RespondWithJSON(http.StatusOK, response, w, e.log, true)
 }
 
-// handleGet godoc
+// GetMedia godoc
 //
 //	@Summary		Query media items
 //	@Description	query media items based on some parameters
@@ -113,7 +103,9 @@ func (e *mediaEndpoint) handlePost(ctx context.Context, w http.ResponseWriter, r
 //	@Success		200		{object}	ahmodel.GetMediaResponse
 //	@Failure		400		{object}	string
 //	@Router			/api/v1/media [get]
-func (e *mediaEndpoint) handleGet(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (e *mediaEndpoint) GetMedia(w http.ResponseWriter, r *http.Request) {
+	ctx := e.createContext(r)
+
 	tagID := r.URL.Query().Get("tag_id")
 
 	if tagID == "" {
