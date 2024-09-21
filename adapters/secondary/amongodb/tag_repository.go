@@ -52,7 +52,7 @@ func (r *tagRepository) insertTagIfNotExists(ctx context.Context, name string) (
 		return primitive.NilObjectID, errortypes.NewUpstreamCommunicationErrorf("mongodb", "failed to upsert tag: %v", err)
 	}
 
-	if result.UpsertedCount < 1 {
+	if result.UpsertedCount > 0 {
 		if oid, ok := result.UpsertedID.(primitive.ObjectID); ok {
 			return oid, nil
 		}
