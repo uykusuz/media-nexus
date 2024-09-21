@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 type mediaMetadataRepository struct {
@@ -102,7 +103,9 @@ func (r *mediaMetadataRepository) ensureIncompleteMetadataExpireIndex(
 func (r *mediaMetadataRepository) Upsert(ctx context.Context, metadata model.MediaMetadata) error {
 	doc := ammodel.NewMediaMetadataDocument(metadata)
 
-	collection := r.client.Database(r.database).Collection(r.collection)
+	// majority writeconcern: this upsert acts as a lock so to say. So we definitely want that written
+	collection := r.client.Database(r.database).
+		Collection(r.collection, options.Collection().SetWriteConcern(writeconcern.Majority()))
 
 	filter := bson.M{"_id": doc.Id}
 	update := bson.M{"$set": doc}
