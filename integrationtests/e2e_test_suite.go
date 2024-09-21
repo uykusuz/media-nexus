@@ -20,6 +20,7 @@ type E2ETestSuite struct {
 	config *config.Configuration
 	log    logger.Logger
 	appl   app.App
+	client *http.Client
 }
 
 func (s *E2ETestSuite) SetupSuite() {
@@ -29,6 +30,7 @@ func (s *E2ETestSuite) SetupSuite() {
 
 	s.log = logger.NewLogger("test")
 	s.appl = app.NewApp(s.log, s.config)
+	s.client = &http.Client{}
 
 	s.Require().NoError(s.appl.Setup())
 
@@ -69,11 +71,13 @@ func (s *E2ETestSuite) waitForServerReady() <-chan bool {
 
 func (s *E2ETestSuite) isServerReady() bool {
 	req, err := http.NewRequest(http.MethodGet, s.CreateServerUrl("/health/ready"), nil)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	client := http.Client{}
 	response, err := client.Do(req)
-	s.NoError(err)
+	if err != nil {
+		return false
+	}
 
 	defer response.Body.Close()
 
@@ -95,4 +99,8 @@ func (s *E2ETestSuite) App() app.App {
 
 func (s *E2ETestSuite) Context() context.Context {
 	return util.WithLogger(context.Background(), s.log)
+}
+
+func (s *E2ETestSuite) Client() *http.Client {
+	return s.client
 }
