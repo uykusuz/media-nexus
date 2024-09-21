@@ -117,8 +117,8 @@ make test.integration
 
 ### Architectural
 
-A requirement is always AWS, because the company's target prod environment is also
-on AWS.
+As a general nice to have requirement I set AWS, because the infrastructure of the
+people who gave me the task is also on AWS. And part of the task is "production-ready".
 
 #### Hexagonal Architecture
 
@@ -138,7 +138,7 @@ on AWS.
 So we want a blob storage of some sort in the cloud. Because that's persistent,
 redundant and easily scalable. For more details see [Technology Choices](#technology-choices) below.
 
-#### Multi-Database "Transactions"
+#### Multi-Database "Transactions" and Concurrency
 
 We made the choice to store blobs in one DB and metadata for it in another. So we need to make sure we have sane state.
 We achieve this by doing the following when inserting the media:
@@ -147,11 +147,18 @@ We achieve this by doing the following when inserting the media:
 2) upload the blob
 3) clear the upload incomplete flag
 
-When media is inserted we check whether a metadata for the file's checksum exists. If it does, but is incomplete
-and a certain time has passed, we continue to re-add it. Else we assume it must still be uploading.
+When media is inserted we check whether a metadata for the file's checksum exists.
+If it does, but is incomplete and a certain time has passed, we continue to re-add it.
+Else we assume it must still be uploading.
 
-Furthermore we add a partial TTL index to MongoDB to the metadata repository to remove those docs that are incomplete
-and it's last update time is very long ago.
+Furthermore we add a partial TTL index to MongoDB to the metadata repository to remove
+those docs that are incomplete and it's last update time is very long ago.
+
+**What do we get here?**
+
+* concurrency: we make a kind of lock through the metadata object's
+  (upload incomplete, last update) tuple
+* little probability of zombies in either S3 or metadata repos
 
 #### Test Storage
 
@@ -229,10 +236,9 @@ swag is such a tool that checks all the boxes. Actively maintained, 10k stars on
 
 **So why not use OpenAPI to generate the boilerplate code for the API?**
 
-It's not that easy. It's very opinionated and you have to work around a lot of this.
-Or you buy in fully and then possibly have to rewrite everything when doing a major
-version upgrade.
-
+It's not that easy. It's very opinionated and you have to work around a lot of these
+opions. Or you go all-in with it and then most probably have to rewrite parts of it
+when doing a major version upgrade.
 Even then, there are still bugs, because it's a huge project. Then again working around
 issues.
 
@@ -283,6 +289,7 @@ Viper has almost 27k stars on github, is actively maintained and checks all the 
 * metrics
   * depends a bit on the environment
   * inside a service mesh: get many metrics already for free
-  * outside: need to implement solution based on opentelemetry probably
+  * with or without need to implement some metrics API connection (prometheus, datadog)
 * traces
   * need to propagate downstream trace headers to upstream request
+  * and need to implement solution (based on opentelemetry!?) for starting own traces
