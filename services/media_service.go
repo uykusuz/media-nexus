@@ -43,6 +43,12 @@ func (s *mediaService) CreateMedia(
 	tagIds []model.TagId,
 	file multipart.File,
 ) (model.MediaId, error) {
+	if allExist, err := s.tags.AllExist(ctx, tagIds); err != nil {
+		return "", err
+	} else if !allExist {
+		return "", errortypes.NewBadUserInput("not all tag ids exist. Add them first.")
+	}
+
 	metadata, err := createMediaMetadata(name, tagIds, file)
 	if err != nil {
 		return "", err
@@ -77,10 +83,10 @@ func (s *mediaService) canProceedCreateMedia(
 	existingMetadata, err := s.mediaMetadata.FindByChecksum(ctx, metadata.Checksum())
 	if err != nil {
 		if !errortypes.IsResourceNotFound(err) {
-			return false, existingMetadata.Id(), err
+			return false, "", err
 		}
 
-		return true, existingMetadata.Id(), nil
+		return true, "", nil
 	}
 
 	if existingMetadata.UploadComplete() {
@@ -105,7 +111,7 @@ func (s *mediaService) canProceedCreateMedia(
 
 	if !existingMetadata.LastUpdate().Add(s.incompleteMetadataLifetime).Before(time.Now()) {
 		return false, existingMetadata.Id(), errortypes.NewResourceAlreadyExistsf(
-			"media already exists with id '%v' and has a different checksum",
+			"media already exists with id '%v'",
 			metadata.Id(),
 		)
 	}
@@ -146,8 +152,10 @@ func createMediaMetadata(
 		return nil, err
 	}
 
+	id := computeHashForMedia(sha256.New(), name, tagIds, checksum)
+
 	return model.NewMediaMetadata(
-		checksum,
+		id,
 		name,
 		tagIds,
 		checksum,
