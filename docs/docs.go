@@ -225,6 +225,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "file": {
+                    "description": "File binary blob",
                     "type": "array",
                     "items": {
                         "type": "integer"

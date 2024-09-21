@@ -48,8 +48,9 @@ func (e *mediaEndpoint) HandleMedia(w http.ResponseWriter, r *http.Request) {
 }
 
 type postMediaRequest struct {
-	Name string
+	Name   string
 	TagIds []string
+	// File binary blob
 	File []byte
 }
 

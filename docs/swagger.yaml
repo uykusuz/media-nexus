@@ -43,6 +43,7 @@ definitions:
   ahttp.postMediaRequest:
     properties:
       file:
+        description: File binary blob
         items:
           type: integer
         type: array

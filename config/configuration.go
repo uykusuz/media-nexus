@@ -8,7 +8,7 @@ import (
 
 // Configuration defines options for the application.
 type Configuration struct {
-	BaseUrl string
+	BaseUrl  string
 	HTTPPort int
 
 	MongoDBURI                      string
@@ -22,13 +22,15 @@ type Configuration struct {
 
 func NewConfiguration() Configuration {
 	return Configuration{
-		BaseUrl: "http://localhost",
-		HTTPPort:                8081,
-		MongoDBURI:              "http://localhost:27017",
-		MediaDatabase:           "media",
-		MediaTagCollection:      "tags",
-		MediaMetadataCollection: "media_metadata",
-		MediaBucket:             "hintergarten.de-media-nexus-media",
+		BaseUrl:                         "http://localhost",
+		HTTPPort:                        8081,
+		MongoDBURI:                      "http://localhost:27017",
+		MediaDatabase:                   "media",
+		MediaTagCollection:              "tags",
+		MediaMetadataCollection:         "media_metadata",
+		MediaBucket:                     "hintergarten.de-media-nexus-media",
+		MediaUrlLifetime:                15 * 60 * time.Second,
+		IncompleteMediaMetadataLifetime: 4 * 60 * 60 * time.Second,
 	}
 }
 

@@ -22,23 +22,28 @@ import (
 
 //	@license.name	MIT
 
-//	@host		localhost:8081
-//	@BasePath	/api/v1
-func StartAPI(log logger.Logger, baseUrl string, port int, mediaService services.MediaService, tags ports.TagRepository) error {
+// @host		localhost:8081
+// @BasePath	/api/v1
+func StartAPI(
+	log logger.Logger,
+	baseUrl string,
+	port int,
+	mediaService services.MediaService,
+	tags ports.TagRepository,
+) error {
 	mediaEndpoint := &mediaEndpoint{mediaService, log, 200}
 	http.HandleFunc("/api/v1/media", mediaEndpoint.HandleMedia)
 
 	tagsEndpoint := &tagsEndpoint{tags, log}
 	http.HandleFunc("/api/v1/tags", tagsEndpoint.HandleTags)
 
-	http.HandleFunc("/swagger/", func (w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/swagger/", func(w http.ResponseWriter, r *http.Request) {
 		swaggerHandler(baseUrl, port, w, r)
 	})
 
 	log.Infof("start serving http on port %v ...", port)
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 }
-
 
 func swaggerHandler(baseUrl string, port int, w http.ResponseWriter, r *http.Request) {
 	url := fmt.Sprintf("%v:%v/swagger/doc.json", baseUrl, port)
