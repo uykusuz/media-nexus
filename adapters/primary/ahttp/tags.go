@@ -11,8 +11,9 @@ import (
 )
 
 type tagsEndpoint struct {
-	tags ports.TagRepository
-	log  logger.Logger
+	tags          ports.TagRepository
+	log           logger.Logger
+	tagNameMaxLen int
 }
 
 func (e *tagsEndpoint) createContext(r *http.Request) context.Context {
@@ -36,6 +37,11 @@ func (e *tagsEndpoint) CreateTag(w http.ResponseWriter, r *http.Request) {
 	var data ahmodel.PostTagsRequest
 	err := httputils.ParseJSONRequestBody(r.Body, &data)
 	if httputils.HandleError(err, w, e.log) {
+		return
+	}
+
+	if len(data.Name) > e.tagNameMaxLen {
+		httputils.RespondWithError(w, http.StatusBadRequest, "tag name is too long. Maximum is %v", e.tagNameMaxLen)
 		return
 	}
 

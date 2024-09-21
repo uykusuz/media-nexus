@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"media-nexus/adapters/primary/ahttp/ahmodel"
-	"media-nexus/errortypes"
 	"media-nexus/httputils"
 	"media-nexus/logger"
 	"media-nexus/model"
@@ -17,18 +16,8 @@ type mediaEndpoint struct {
 	mediaService        services.MediaService
 	log                 logger.Logger
 	maxUploadFileSizeMB int64
-}
-
-func newMediaEndpoint(
-	mediaService services.MediaService,
-	log logger.Logger,
-	maxUploadFileSizeMB int64,
-) (*mediaEndpoint, error) {
-	if maxUploadFileSizeMB < 1 {
-		return nil, errortypes.NewInvalidArgumentf("maxUploadFileSizeMB must be greater than 0.")
-	}
-
-	return &mediaEndpoint{mediaService, log, maxUploadFileSizeMB}, nil
+	mediaNameMaxLen     int
+	tagIdMaxLen         int
 }
 
 type postMediaRequest struct {
@@ -63,7 +52,12 @@ func (e *mediaEndpoint) CreateMedia(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	if name == "" {
-		http.Error(w, "File name is required", http.StatusBadRequest)
+		httputils.RespondWithError(w, http.StatusBadRequest, "File name is required")
+		return
+	}
+
+	if len(name) > e.mediaNameMaxLen {
+		httputils.RespondWithError(w, http.StatusBadRequest, "File name is too long. Maximum is %v", e.mediaNameMaxLen)
 		return
 	}
 
@@ -71,6 +65,9 @@ func (e *mediaEndpoint) CreateMedia(w http.ResponseWriter, r *http.Request) {
 
 	tagIdList := make([]model.TagId, 0, len(rawTagIds))
 	for _, tagId := range rawTagIds {
+		if !e.validateTagId(tagId, w) {
+			return
+		}
 		tagIdList = append(tagIdList, model.TagId(tagId))
 	}
 
@@ -93,6 +90,15 @@ func (e *mediaEndpoint) CreateMedia(w http.ResponseWriter, r *http.Request) {
 	httputils.RespondWithJSON(http.StatusOK, response, w, e.log, true)
 }
 
+func (e *mediaEndpoint) validateTagId(tagId string, w http.ResponseWriter) bool {
+	if len(tagId) > e.tagIdMaxLen {
+		httputils.RespondWithError(w, http.StatusBadRequest, "Tag ID is too long. Maximum is %v", e.tagIdMaxLen)
+		return false
+	}
+
+	return true
+}
+
 // GetMedia godoc
 //
 //	@Summary		Query media items
@@ -106,14 +112,18 @@ func (e *mediaEndpoint) CreateMedia(w http.ResponseWriter, r *http.Request) {
 func (e *mediaEndpoint) GetMedia(w http.ResponseWriter, r *http.Request) {
 	ctx := e.createContext(r)
 
-	tagID := r.URL.Query().Get("tag_id")
+	tagId := r.URL.Query().Get("tag_id")
 
-	if tagID == "" {
-		http.Error(w, "tag_id parameter is required", http.StatusBadRequest)
+	if tagId == "" {
+		httputils.RespondWithError(w, http.StatusBadRequest, "tag_id parameter is required")
 		return
 	}
 
-	mediaItems, err := e.mediaService.FindByTagId(ctx, model.TagId(tagID))
+	if !e.validateTagId(tagId, w) {
+		return
+	}
+
+	mediaItems, err := e.mediaService.FindByTagId(ctx, model.TagId(tagId))
 	if httputils.HandleError(err, w, e.log) {
 		return
 	}

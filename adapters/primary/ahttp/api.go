@@ -43,11 +43,11 @@ func StartAPI(
 	r.HandleFunc("/api/v1/health/live", healthEndpoint.GetHealthLive).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/health/ready", healthEndpoint.GetHealthReady).Methods(http.MethodGet)
 
-	mediaEndpoint := &mediaEndpoint{mediaService, log, 200}
+	mediaEndpoint := &mediaEndpoint{mediaService, log, 200, 500, 200}
 	r.HandleFunc("/api/v1/media", mediaEndpoint.GetMedia).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/media", mediaEndpoint.CreateMedia).Methods(http.MethodPost)
 
-	tagsEndpoint := &tagsEndpoint{tags, log}
+	tagsEndpoint := &tagsEndpoint{tags, log, 500}
 	r.HandleFunc("/api/v1/tags", tagsEndpoint.ListTags).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/tags", tagsEndpoint.CreateTag).Methods(http.MethodPost)
 
