@@ -74,10 +74,6 @@ graph LR
 * mongodb instance
 * (optional) for `make lint`: `golangci-lint`
 
-### Configuration
-
-The configuration file is located at `local-config.yml`.
-
 ### Execution
 
 Build it:
@@ -90,7 +86,7 @@ make compile
 And then run it:
 
 ```bash
-AWS_PROFILE=<aws profile> MEDIANEXUS_MONGODBURI=<mongo uri> ./media-nexus local-config.yml
+AWS_PROFILE=<aws profile> MEDIANEXUS_MONGODBURI=<mongo uri> ./media-nexus
 ```
 
 ### Documentation
