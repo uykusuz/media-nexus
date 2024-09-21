@@ -2,10 +2,13 @@ GET http://localhost:8081/api/v1/tags
 
 ###
 
+GET http://localhost:8081/api/v1/health/live
+
+###
+
 POST http://localhost:8081/api/v1/tags
 
-{ "name": "blub" }
-
+{ "name": "tag2" }
 
 ###
 
@@ -23,11 +26,11 @@ ExampleName
 --boundary12345
 Content-Disposition: form-data; name="tag_ids[]"
 
-tag1
+75e8dafb2eb89a1da9dc23ae727a2b4a6fc47b506ab4af4e1a80053dfa2cc832
 --boundary12345
 Content-Disposition: form-data; name="tag_ids[]"
 
-tag2
+94ed022ea17a947101df44b9a9f6e195522d96a1c3a10818666044832b1308a3
 --boundary12345
 Content-Disposition: form-data; name="file"; filename="blub"
 Content-Type: application/octet-stream
@@ -47,7 +50,7 @@ ExampleName
 --boundary12345
 Content-Disposition: form-data; name="tag_ids[]"
 
-tag1
+75e8dafb2eb89a1da9dc23ae727a2b4a6fc47b506ab4af4e1a80053dfa2cc832
 --boundary12345
 Content-Disposition: form-data; name="file"; filename="blub2"
 Content-Type: application/octet-stream
@@ -57,8 +60,8 @@ blub2
 
 ###
 
-GET http://localhost:8081/api/v1/media?tag_id=tag2
+GET http://localhost:8081/api/v1/media?tag_id=75e8dafb2eb89a1da9dc23ae727a2b4a6fc47b506ab4af4e1a80053dfa2cc832
 
 ###
 
-GET http://localhost:8081/api/v1/media?tag_id=tag2
+GET http://localhost:8081/api/v1/media?tag_id=94ed022ea17a947101df44b9a9f6e195522d96a1c3a10818666044832b1308a3
