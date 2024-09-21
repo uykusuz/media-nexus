@@ -7,6 +7,7 @@ import (
 	"media-nexus/model"
 	"media-nexus/ports"
 	"media-nexus/util"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,24 +15,26 @@ import (
 )
 
 type mediaMetadataRepository struct {
-	client     *mongo.Client
-	database   string
-	collection string
+	client                     *mongo.Client
+	database                   string
+	collection                 string
+	incompleteMetadataLifetime time.Duration
 }
 
 func NewMediaMetadataRepository(
 	client *mongo.Client,
 	database string,
 	collection string,
+	incompleteMetadataLifetime time.Duration,
 ) (ports.MediaMetadataRepository, util.Runner) {
-	repo := &mediaMetadataRepository{client, database, collection}
+	repo := &mediaMetadataRepository{client, database, collection, incompleteMetadataLifetime}
 
 	runner := func(ctx context.Context) {
 		log := util.Logger(ctx)
 
 		err := repo.ensureIndices(ctx)
 		if err != nil {
-			log.Errorf("failed to ensure indices for media metadata %v:%v", database, collection)
+			log.Errorf("failed to ensure indices for media metadata %v:%v: %v", database, collection, err)
 		}
 	}
 
@@ -46,6 +49,10 @@ func (r *mediaMetadataRepository) ensureIndices(ctx context.Context) error {
 	}
 
 	if err := ensureFieldIndex(ctx, collection, "checksum_index", "checksum"); err != nil {
+		return err
+	}
+
+	if err := r.ensureIncompleteMetadataExpireIndex(ctx, collection, "incomplete_metadata_expire_index"); err != nil {
 		return err
 	}
 
@@ -69,6 +76,29 @@ func ensureFieldIndex(ctx context.Context, collection *mongo.Collection, indexNa
 	return handleError(err)
 }
 
+func (r *mediaMetadataRepository) ensureIncompleteMetadataExpireIndex(
+	ctx context.Context,
+	collection *mongo.Collection,
+	indexName string,
+) error {
+	// we want to automatically expire metadata zombies. That is metadata docs, for which
+	// the upload didn't complete and the last update time is way too old
+	ttlIndex := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "last_update", Value: 1},
+		},
+		Options: options.Index().
+			SetName(indexName).
+			SetExpireAfterSeconds(int32(r.incompleteMetadataLifetime.Seconds())).
+			SetPartialFilterExpression(bson.D{
+				{Key: "upload_complete", Value: false},
+			}),
+	}
+
+	_, err := collection.Indexes().CreateOne(ctx, ttlIndex)
+	return err
+}
+
 func (r *mediaMetadataRepository) Upsert(ctx context.Context, metadata model.MediaMetadata) error {
 	doc := ammodel.NewMediaMetadataDocument(metadata)
 
@@ -89,6 +119,7 @@ func (r *mediaMetadataRepository) Upsert(ctx context.Context, metadata model.Med
 func (r *mediaMetadataRepository) SetUploadComplete(ctx context.Context, id model.MediaId, complete bool) error {
 	doc := &ammodel.MediaMetadataDocument{
 		UploadComplete: complete,
+		LastUpdate:     ammodel.LastUpdateToString(time.Now()),
 	}
 
 	collection := r.client.Database(r.database).Collection(r.collection)

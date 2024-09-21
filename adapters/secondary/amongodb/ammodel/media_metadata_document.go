@@ -23,7 +23,7 @@ func NewMediaMetadataDocument(metadata model.MediaMetadata) *MediaMetadataDocume
 		TagIds:         metadata.TagIds(),
 		Checksum:       metadata.Checksum(),
 		UploadComplete: metadata.UploadComplete(),
-		LastUpdate:     metadata.LastUpdate().Format(time.RFC3339Nano),
+		LastUpdate:     LastUpdateToString(metadata.LastUpdate()),
 	}
 }
 
@@ -56,4 +56,8 @@ func MediaMetadataDocumentsToModel(docs []*MediaMetadataDocument, log logger.Log
 	}
 
 	return result, nil
+}
+
+func LastUpdateToString(t time.Time) string {
+	return t.Format(time.RFC3339Nano)
 }

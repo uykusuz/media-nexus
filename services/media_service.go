@@ -146,10 +146,8 @@ func createMediaMetadata(
 		return nil, err
 	}
 
-	id := computeHashForMedia(sha256.New(), name, tagIds, checksum)
-
 	return model.NewMediaMetadata(
-		id,
+		checksum,
 		name,
 		tagIds,
 		checksum,
