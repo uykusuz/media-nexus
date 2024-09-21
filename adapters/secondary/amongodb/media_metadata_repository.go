@@ -149,7 +149,11 @@ func (r *mediaMetadataRepository) FindByChecksum(ctx context.Context, checksum s
 		return nil, err
 	}
 
-	if len(docs) != 1 {
+	if len(docs) < 1 {
+		return nil, errortypes.NewResourceNotFoundf("media by checksum %v", checksum)
+	}
+
+	if len(docs) > 1 {
 		log.Errorf("found multiple documents with same checksum: %v. Will proceed with first one only.", checksum)
 	}
 
