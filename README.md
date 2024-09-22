@@ -21,7 +21,7 @@ The API provides the following functionalities:
 
 ### HTTP API
 
-Run the service (cf. [Build and Run](#build-and-run)) and then navigate to `http://localhost:8081/swagger`.
+Run the service (cf. [Build and Run](#build-and-run)) and then navigate to `http://localhost:8081/swagger/index.html`.
 
 ## Architecture
 
@@ -95,7 +95,7 @@ AWS_PROFILE=<aws profile> MEDIANEXUS_MONGODBURI=<mongo uri> ./media-nexus
 make docs
 ```
 
-This will regenerate the documentation. Now relaunch the service and navigate to `http://localhost:8081/swagger`.
+This will regenerate the documentation. Now relaunch the service and navigate to `http://localhost:8081/swagger/index.html`.
 
 ### Integration Tests
 

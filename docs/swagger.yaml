@@ -66,6 +66,26 @@ info:
   title: media-nexus API
   version: "1.0"
 paths:
+  /api/v1/health/live:
+    get:
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Retrieve live health status of server
+      tags:
+      - tags
+  /api/v1/health/ready:
+    get:
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Retrieve ready health status of server
+      tags:
+      - tags
   /api/v1/media:
     get:
       description: query media items based on some parameters

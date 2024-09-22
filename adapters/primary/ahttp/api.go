@@ -51,9 +51,7 @@ func StartAPI(
 	r.HandleFunc("/api/v1/tags", tagsEndpoint.ListTags).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/tags", tagsEndpoint.CreateTag).Methods(http.MethodPost)
 
-	r.HandleFunc("/swagger/", func(w http.ResponseWriter, r *http.Request) {
-		swaggerHandler(baseUrl, port, w, r)
-	})
+	r.PathPrefix("/swagger").Handler(createSwaggerHandler(baseUrl, port)).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%v", port),
@@ -79,7 +77,7 @@ func StartAPI(
 	return srv.Shutdown(ctx)
 }
 
-func swaggerHandler(baseUrl string, port int, w http.ResponseWriter, r *http.Request) {
+func createSwaggerHandler(baseUrl string, port int) http.HandlerFunc {
 	url := fmt.Sprintf("%v:%v/swagger/doc.json", baseUrl, port)
-	httpSwagger.Handler(httpSwagger.URL(url))(w, r)
+	return httpSwagger.Handler(httpSwagger.URL(url))
 }

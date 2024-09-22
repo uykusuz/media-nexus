@@ -2,6 +2,10 @@ GET http://localhost:8081/api/v1/tags
 
 ###
 
+GET http://localhost:8081/swagger/index.html
+
+###
+
 GET http://localhost:8081/api/v1/health/live
 
 ###
