@@ -3,18 +3,18 @@ package model
 type MediaItem interface {
 	MediaMetadata
 
-	FileUrl() string
+	FileURL() string
 }
 
-func NewMediaItem(metadata MediaMetadata, fileUrl string) MediaItem {
-	return &mediaItem{metadata, fileUrl}
+func NewMediaItem(metadata MediaMetadata, fileURL string) MediaItem {
+	return &mediaItem{metadata, fileURL}
 }
 
 type mediaItem struct {
 	MediaMetadata
-	fileUrl string
+	fileURL string
 }
 
-func (m *mediaItem) FileUrl() string {
-	return m.fileUrl
+func (m *mediaItem) FileURL() string {
+	return m.fileURL
 }

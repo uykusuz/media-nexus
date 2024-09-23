@@ -15,34 +15,34 @@ import (
 )
 
 type MediaService interface {
-	CreateMedia(ctx context.Context, name string, tagIds []model.TagId, file multipart.File) (model.MediaId, error)
-	FindByTagId(ctx context.Context, tagId model.TagId) ([]model.MediaItem, error)
+	CreateMedia(ctx context.Context, name string, tagIDs []model.TagID, file multipart.File) (model.MediaID, error)
+	FindByTagID(ctx context.Context, tagID model.TagID) ([]model.MediaItem, error)
 }
 
 func NewMediaService(
 	tags ports.TagRepository,
 	mediaMetadata ports.MediaMetadataRepository,
 	media ports.MediaRepository,
-	mediaUrlLifetime time.Duration,
+	mediaURLLifetime time.Duration,
 	incompleteMetadataLifetime time.Duration,
 ) MediaService {
-	return &mediaService{tags, mediaMetadata, media, mediaUrlLifetime, incompleteMetadataLifetime}
+	return &mediaService{tags, mediaMetadata, media, mediaURLLifetime, incompleteMetadataLifetime}
 }
 
 type mediaService struct {
 	tags                       ports.TagRepository
 	mediaMetadata              ports.MediaMetadataRepository
 	media                      ports.MediaRepository
-	mediaUrlLifetime           time.Duration
+	mediaURLLifetime           time.Duration
 	incompleteMetadataLifetime time.Duration
 }
 
 func (s *mediaService) CreateMedia(
 	ctx context.Context,
 	name string,
-	tagIds []model.TagId,
+	tagIds []model.TagID,
 	file multipart.File,
-) (model.MediaId, error) {
+) (model.MediaID, error) {
 	if allExist, err := s.tags.AllExist(ctx, tagIds); err != nil {
 		return "", err
 	} else if !allExist {
@@ -54,8 +54,8 @@ func (s *mediaService) CreateMedia(
 		return "", err
 	}
 
-	if canProceed, existingMetadataId, err := s.canProceedCreateMedia(ctx, metadata); !canProceed {
-		return existingMetadataId, err
+	if canProceed, existingMetadataID, err := s.canProceedCreateMedia(ctx, metadata); !canProceed {
+		return existingMetadataID, err
 	}
 
 	err = s.mediaMetadata.Upsert(ctx, metadata)
@@ -63,23 +63,23 @@ func (s *mediaService) CreateMedia(
 		return "", err
 	}
 
-	err = s.media.CreateMedia(ctx, metadata.Id(), file)
+	err = s.media.CreateMedia(ctx, metadata.ID(), file)
 	if err != nil {
 		return "", err
 	}
 
-	err = s.mediaMetadata.SetUploadComplete(ctx, metadata.Id(), true)
+	err = s.mediaMetadata.SetUploadComplete(ctx, metadata.ID(), true)
 	if err != nil {
 		return "", err
 	}
 
-	return metadata.Id(), nil
+	return metadata.ID(), nil
 }
 
 func (s *mediaService) canProceedCreateMedia(
 	ctx context.Context,
 	metadata model.MediaMetadata,
-) (bool, model.MediaId, error) {
+) (bool, model.MediaID, error) {
 	existingMetadata, err := s.mediaMetadata.FindByChecksum(ctx, metadata.Checksum())
 	if err != nil {
 		if !errortypes.IsResourceNotFound(err) {
@@ -91,38 +91,38 @@ func (s *mediaService) canProceedCreateMedia(
 
 	if existingMetadata.UploadComplete() {
 		if metadata.Name() != existingMetadata.Name() {
-			return false, existingMetadata.Id(), errortypes.NewResourceAlreadyExistsf(
+			return false, existingMetadata.ID(), errortypes.NewResourceAlreadyExistsf(
 				"media already exists at id %v but has different name. Expected %v, but is %v",
-				existingMetadata.Id(),
+				existingMetadata.ID(),
 				existingMetadata.Name(),
 				metadata.Name(),
 			)
 		}
 
-		if !tagIdsEqual(metadata.TagIds(), existingMetadata.TagIds()) {
-			return false, existingMetadata.Id(), errortypes.NewResourceAlreadyExistsf(
+		if !tagIdsEqual(metadata.TagIDs(), existingMetadata.TagIDs()) {
+			return false, existingMetadata.ID(), errortypes.NewResourceAlreadyExistsf(
 				"media already exists at id %v but has different tag Ids",
-				existingMetadata.Id(),
+				existingMetadata.ID(),
 			)
 		}
 
-		return false, existingMetadata.Id(), nil
+		return false, existingMetadata.ID(), nil
 	}
 
 	if !existingMetadata.LastUpdate().Add(s.incompleteMetadataLifetime).Before(time.Now()) {
-		return false, existingMetadata.Id(), errortypes.NewResourceAlreadyExistsf(
+		return false, existingMetadata.ID(), errortypes.NewResourceAlreadyExistsf(
 			"media already exists with id '%v'",
-			metadata.Id(),
+			metadata.ID(),
 		)
 	}
 
-	return true, existingMetadata.Id(), nil
+	return true, existingMetadata.ID(), nil
 }
 
-func (s *mediaService) FindByTagId(ctx context.Context, tagId model.TagId) ([]model.MediaItem, error) {
+func (s *mediaService) FindByTagID(ctx context.Context, tagID model.TagID) ([]model.MediaItem, error) {
 	log := util.Logger(ctx)
 
-	metadatas, err := s.mediaMetadata.FindByTagId(ctx, tagId)
+	metadatas, err := s.mediaMetadata.FindByTagID(ctx, tagID)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (s *mediaService) FindByTagId(ctx context.Context, tagId model.TagId) ([]mo
 	items := make([]model.MediaItem, 0, len(metadatas))
 
 	for _, metadata := range metadatas {
-		url, err := s.media.GetMediaUrl(ctx, metadata.Id(), s.mediaUrlLifetime)
+		url, err := s.media.GetMediaURL(ctx, metadata.ID(), s.mediaURLLifetime)
 		if err != nil {
 			log.Errorf("failed to get media url. Adding anyway. Details: %v", err)
 		}
@@ -165,7 +165,13 @@ func createMediaMetadata(
 }
 
 func computeChecksum(file multipart.File, hasher hash.Hash) (string, error) {
-	defer file.Seek(0, io.SeekStart)
+	var err error
+	defer func() {
+		_, sErr := file.Seek(0, io.SeekStart)
+		if sErr != nil && err == nil {
+			err = sErr
+		}
+	}()
 
 	buffer := make([]byte, 4096)
 
@@ -201,7 +207,7 @@ func computeHashForMedia(hasher hash.Hash, name string, tagIds []string, checksu
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func tagIdsEqual(lhs []model.TagId, rhs []model.TagId) bool {
+func tagIdsEqual(lhs []model.TagID, rhs []model.TagID) bool {
 	if len(lhs) != len(rhs) {
 		return false
 	}

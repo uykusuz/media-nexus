@@ -107,7 +107,7 @@ func (r *mediaMetadataRepository) Upsert(ctx context.Context, metadata model.Med
 	collection := r.client.Database(r.database).
 		Collection(r.collection, options.Collection().SetWriteConcern(writeconcern.Majority()))
 
-	filter := bson.M{"_id": doc.Id}
+	filter := bson.M{"_id": doc.ID}
 	update := bson.M{"$set": doc}
 	opts := options.Update().SetUpsert(true)
 
@@ -119,7 +119,7 @@ func (r *mediaMetadataRepository) Upsert(ctx context.Context, metadata model.Med
 	return nil
 }
 
-func (r *mediaMetadataRepository) SetUploadComplete(ctx context.Context, id model.MediaId, complete bool) error {
+func (r *mediaMetadataRepository) SetUploadComplete(ctx context.Context, id model.MediaID, complete bool) error {
 	doc := &ammodel.MediaMetadataDocument{
 		UploadComplete: complete,
 		LastUpdate:     ammodel.LastUpdateToString(time.Now()),
@@ -163,10 +163,10 @@ func (r *mediaMetadataRepository) FindByChecksum(ctx context.Context, checksum s
 	return docs[0].ToModel()
 }
 
-func (r *mediaMetadataRepository) FindByTagId(ctx context.Context, id model.TagId) ([]model.MediaMetadata, error) {
+func (r *mediaMetadataRepository) FindByTagID(ctx context.Context, id model.TagID) ([]model.MediaMetadata, error) {
 	log := util.Logger(ctx)
 
-	docs, err := r.findDocumentsByTagId(ctx, id)
+	docs, err := r.findDocumentsByTagID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -218,9 +218,9 @@ func (r *mediaMetadataRepository) findDocumentsByChecksum(
 	return docs, nil
 }
 
-func (r *mediaMetadataRepository) findDocumentsByTagId(
+func (r *mediaMetadataRepository) findDocumentsByTagID(
 	ctx context.Context,
-	id model.TagId,
+	id model.TagID,
 ) ([]*ammodel.MediaMetadataDocument, error) {
 	collection := r.client.Database(r.database).Collection(r.collection)
 
@@ -255,7 +255,7 @@ func (r *mediaMetadataRepository) findDocumentsByTagId(
 	return docs, nil
 }
 
-func (r *mediaMetadataRepository) Get(ctx context.Context, id model.MediaId) (model.MediaMetadata, error) {
+func (r *mediaMetadataRepository) Get(ctx context.Context, id model.MediaID) (model.MediaMetadata, error) {
 	collection := r.client.Database(r.database).Collection(r.collection)
 
 	filter := bson.M{"_id": id}
@@ -270,7 +270,7 @@ func (r *mediaMetadataRepository) Get(ctx context.Context, id model.MediaId) (mo
 	return doc.ToModel()
 }
 
-func (r *mediaMetadataRepository) DeleteAll(ctx context.Context, ids []model.MediaId) error {
+func (r *mediaMetadataRepository) DeleteAll(ctx context.Context, ids []model.MediaID) error {
 	collection := r.client.Database(r.database).Collection(r.collection)
 
 	filter := bson.M{"_id": bson.M{"$in": ids}}

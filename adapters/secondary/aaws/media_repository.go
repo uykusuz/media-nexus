@@ -42,7 +42,7 @@ func (r *mediaRepository) CreateMedia(ctx context.Context, key string, file io.R
 	return nil
 }
 
-func (r *mediaRepository) GetMediaUrl(ctx context.Context, key string, lifetime time.Duration) (string, error) {
+func (r *mediaRepository) GetMediaURL(ctx context.Context, key string, lifetime time.Duration) (string, error) {
 	err := ensureBucketExists(ctx, r.client, r.bucket)
 	if err != nil {
 		return "", err

@@ -28,7 +28,7 @@ type tagRepository struct {
 	collection string
 }
 
-func (r *tagRepository) CreateTag(ctx context.Context, name string) (model.TagId, error) {
+func (r *tagRepository) CreateTag(ctx context.Context, name string) (model.TagID, error) {
 	id, err := r.insertTagIfNotExists(ctx, name)
 	if err != nil {
 		return "", err
@@ -37,7 +37,7 @@ func (r *tagRepository) CreateTag(ctx context.Context, name string) (model.TagId
 	return id, nil
 }
 
-func createIdForName(name string) (string, error) {
+func createIDForName(name string) (string, error) {
 	hasher := sha256.New()
 	if _, err := hasher.Write([]byte(name)); err != nil {
 		return "", errortypes.NewInputOutputErrorf("failed to hash %v", name)
@@ -51,13 +51,13 @@ func (r *tagRepository) insertTagIfNotExists(ctx context.Context, name string) (
 
 	filter := bson.M{"name": name}
 
-	newId, err := createIdForName(name)
+	newID, err := createIDForName(name)
 	if err != nil {
 		return "", err
 	}
 
 	newTagDoc := &tagDocument{
-		ID:   newId,
+		ID:   newID,
 		Name: name,
 	}
 
@@ -120,7 +120,7 @@ func (r *tagRepository) ListTags(ctx context.Context) ([]*model.Tag, error) {
 		}
 
 		mTag := &model.Tag{
-			Id:   tag.ID,
+			ID:   tag.ID,
 			Name: tag.Name,
 		}
 
@@ -134,7 +134,7 @@ func (r *tagRepository) ListTags(ctx context.Context) ([]*model.Tag, error) {
 	return tags, nil
 }
 
-func (r *tagRepository) DeleteTags(ctx context.Context, tagIds []model.TagId) error {
+func (r *tagRepository) DeleteTags(ctx context.Context, tagIds []model.TagID) error {
 	collection := r.client.Database(r.database).Collection(r.collection)
 
 	filter := bson.M{"_id": bson.M{"$in": tagIds}}
@@ -147,7 +147,7 @@ func (r *tagRepository) DeleteTags(ctx context.Context, tagIds []model.TagId) er
 	return err
 }
 
-func (r *tagRepository) AllExist(ctx context.Context, ids []model.TagId) (bool, error) {
+func (r *tagRepository) AllExist(ctx context.Context, ids []model.TagID) (bool, error) {
 	collection := r.client.Database(r.database).Collection(r.collection)
 
 	filter := bson.M{"_id": bson.M{"$in": ids}}

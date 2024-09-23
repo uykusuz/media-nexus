@@ -27,76 +27,82 @@ func TestMedia(t *testing.T) {
 func (s *mediaE2ETestSuite) TestCreateMedia() {
 	ctx := s.Context()
 
-	tagIds := s.createTags(ctx, 2)
-	defer s.App().TagRepo().DeleteTags(ctx, tagIds)
+	tagIDs := s.createTags(ctx, 2)
+	defer func() { s.LogIfError(s.App().TagRepo().DeleteTags(ctx, tagIDs), "delete tags") }()
 
-	mediaId := s.createMedia(s.GenerateAlphanumeric(10), tagIds, "./../assets/test.png")
+	mediaID := s.createMedia(s.GenerateAlphanumeric(10), tagIDs, "./../assets/test.png")
 
-	s.App().MediaMetadataRepo().DeleteAll(ctx, []model.MediaId{mediaId})
-	s.App().MediaRepo().DeleteAll(ctx, []string{mediaId})
+	defer func() {
+		s.LogIfError(s.App().MediaMetadataRepo().DeleteAll(ctx, []model.MediaID{mediaID}), "delete all media metadata")
+	}()
+	defer func() { s.LogIfError(s.App().MediaRepo().DeleteAll(ctx, []string{mediaID}), "delete all medias") }()
 }
 
 func (s *mediaE2ETestSuite) TestCreateMediaIdempotency() {
 	ctx := s.Context()
 
-	tagIds := s.createTags(ctx, 2)
-	defer s.App().TagRepo().DeleteTags(ctx, tagIds)
+	tagIDs := s.createTags(ctx, 2)
+	defer func() { s.LogIfError(s.App().TagRepo().DeleteTags(ctx, tagIDs), "delete tags") }()
 
 	name := s.GenerateAlphanumeric(10)
-	mediaId := s.createMedia(name, tagIds, "./../assets/test.png")
-	defer s.App().MediaMetadataRepo().DeleteAll(ctx, []model.MediaId{mediaId})
-	defer s.App().MediaRepo().DeleteAll(ctx, []string{mediaId})
+	mediaID := s.createMedia(name, tagIDs, "./../assets/test.png")
+	defer func() {
+		s.LogIfError(s.App().MediaMetadataRepo().DeleteAll(ctx, []model.MediaID{mediaID}), "delete media metadata")
+	}()
+	defer func() { s.LogIfError(s.App().MediaRepo().DeleteAll(ctx, []string{mediaID}), "delete media") }()
 
-	mediaId2 := s.createMedia(name, tagIds, "./../assets/test.png")
+	mediaID2 := s.createMedia(name, tagIDs, "./../assets/test.png")
 
-	if !s.Equal(mediaId, mediaId2) {
-		s.App().MediaMetadataRepo().DeleteAll(ctx, []model.MediaId{mediaId2})
-		s.App().MediaRepo().DeleteAll(ctx, []string{mediaId2})
+	if !s.Equal(mediaID, mediaID2) {
+		defer func() {
+			s.LogIfError(s.App().MediaMetadataRepo().DeleteAll(ctx, []model.MediaID{mediaID2}), "delete all media metadata")
+		}()
+		defer func() { s.LogIfError(s.App().MediaRepo().DeleteAll(ctx, []string{mediaID2}), "delete all media") }()
 	}
 }
 
 func (s *mediaE2ETestSuite) TestGetMediaByTagIds() {
 	ctx := s.Context()
 
-	tagIds := s.createTags(ctx, 2)
-	defer s.App().TagRepo().DeleteTags(ctx, tagIds)
+	tagIDs := s.createTags(ctx, 2)
+	defer func() { s.LogIfError(s.App().TagRepo().DeleteTags(ctx, tagIDs), "delete tags") }()
 
-	mediaId := s.createMedia(s.GenerateAlphanumeric(10), tagIds, "./../assets/test.png")
-	mediaId2 := s.createMedia(s.GenerateAlphanumeric(10), []model.TagId{tagIds[0]}, "./../assets/test2.png")
+	mediaID := s.createMedia(s.GenerateAlphanumeric(10), tagIDs, "./../assets/test.png")
+	mediaID2 := s.createMedia(s.GenerateAlphanumeric(10), []model.TagID{tagIDs[0]}, "./../assets/test2.png")
 
-	mediaIds := []model.MediaId{mediaId, mediaId2}
+	mediaIDs := []model.MediaID{mediaID, mediaID2}
 
-	defer s.App().MediaMetadataRepo().DeleteAll(ctx, mediaIds)
-	defer s.App().MediaRepo().DeleteAll(ctx, mediaIds)
+	defer func() { s.LogIfError(s.App().MediaMetadataRepo().DeleteAll(ctx, mediaIDs), "delete media metadatas") }()
+	defer func() { s.LogIfError(s.App().MediaRepo().DeleteAll(ctx, mediaIDs), "delete medias") }()
 
-	mediaItems := s.getMedia(tagIds[0])
+	mediaItems := s.getMedia(tagIDs[0])
 	s.Equal(2, len(mediaItems))
 
-	mediaItems = s.getMedia(tagIds[1])
+	mediaItems = s.getMedia(tagIDs[1])
 	s.Equal(1, len(mediaItems))
 }
 
-func (s *mediaE2ETestSuite) createTags(ctx context.Context, count int) []model.TagId {
-	var tagIds []model.TagId
+func (s *mediaE2ETestSuite) createTags(ctx context.Context, count int) []model.TagID {
+	var tagIDs []model.TagID
 
 	for i := 0; i < count; i++ {
-		tagId, err := s.App().TagRepo().CreateTag(ctx, s.GenerateAlphanumeric(10))
+		tagID, err := s.App().TagRepo().CreateTag(ctx, s.GenerateAlphanumeric(10))
 		s.Require().NoError(err)
-		tagIds = append(tagIds, tagId)
+		tagIDs = append(tagIDs, tagID)
 	}
 
-	return tagIds
+	return tagIDs
 }
 
-func (s *mediaE2ETestSuite) createMedia(name string, tagIds []model.TagId, filePath string) model.MediaId {
+func (s *mediaE2ETestSuite) createMedia(name string, tagIds []model.TagID, filePath string) model.MediaID {
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 
 	err := writer.WriteField("name", name)
 	s.Require().NoError(err)
 
-	for _, tagId := range tagIds {
-		err := writer.WriteField("tag_ids[]", tagId)
+	for _, tagID := range tagIds {
+		err := writer.WriteField("tag_ids[]", tagID)
 		s.Require().NoError(err)
 	}
 
@@ -113,7 +119,7 @@ func (s *mediaE2ETestSuite) createMedia(name string, tagIds []model.TagId, fileP
 	err = writer.Close()
 	s.Require().NoError(err)
 
-	req, err := http.NewRequest("POST", s.CreateServerUrl("/media"), &body)
+	req, err := http.NewRequest("POST", s.CreateServerURL("/media"), &body)
 	s.Require().NoError(err)
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -128,13 +134,13 @@ func (s *mediaE2ETestSuite) createMedia(name string, tagIds []model.TagId, fileP
 	decoder := json.NewDecoder(resp.Body)
 	s.NoError(decoder.Decode(&postMediaResponse))
 
-	s.Require().NotEmpty(postMediaResponse.MediaId)
+	s.Require().NotEmpty(postMediaResponse.MediaID)
 
-	return postMediaResponse.MediaId
+	return postMediaResponse.MediaID
 }
 
-func (s *mediaE2ETestSuite) getMedia(tagId model.TagId) []*ahmodel.MediaItem {
-	url := s.CreateServerUrl("/media?tag_id=%v", tagId)
+func (s *mediaE2ETestSuite) getMedia(tagID model.TagID) []*ahmodel.MediaItem {
+	url := s.CreateServerURL("/media?tag_id=%v", tagID)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	s.NoError(err)
 

@@ -1,3 +1,3 @@
 package model
 
-type MediaId = string
+type MediaID = string

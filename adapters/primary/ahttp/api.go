@@ -32,7 +32,7 @@ import (
 // @BasePath	/api/v1
 func StartAPI(
 	log logger.Logger,
-	baseUrl string,
+	baseURL string,
 	port int,
 	mediaService services.MediaService,
 	tags ports.TagRepository,
@@ -51,11 +51,12 @@ func StartAPI(
 	r.HandleFunc("/api/v1/tags", tagsEndpoint.ListTags).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/tags", tagsEndpoint.CreateTag).Methods(http.MethodPost)
 
-	r.PathPrefix("/swagger").Handler(createSwaggerHandler(baseUrl, port)).Methods(http.MethodGet)
+	r.PathPrefix("/swagger").Handler(createSwaggerHandler(baseURL, port)).Methods(http.MethodGet)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%v", port),
-		Handler: r,
+		Addr:              fmt.Sprintf(":%v", port),
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	stop := make(chan os.Signal, 1)
@@ -77,7 +78,7 @@ func StartAPI(
 	return srv.Shutdown(ctx)
 }
 
-func createSwaggerHandler(baseUrl string, port int) http.HandlerFunc {
-	url := fmt.Sprintf("%v:%v/swagger/doc.json", baseUrl, port)
+func createSwaggerHandler(baseURL string, port int) http.HandlerFunc {
+	url := fmt.Sprintf("%v:%v/swagger/doc.json", baseURL, port)
 	return httpSwagger.Handler(httpSwagger.URL(url))
 }

@@ -71,7 +71,7 @@ func (s *E2ETestSuite) waitForServerReady() <-chan bool {
 }
 
 func (s *E2ETestSuite) isServerReady() bool {
-	req, err := http.NewRequest(http.MethodGet, s.CreateServerUrl("/health/ready"), nil)
+	req, err := http.NewRequest(http.MethodGet, s.CreateServerURL("/health/ready"), nil)
 	s.Require().NoError(err)
 
 	client := http.Client{}
@@ -87,13 +87,13 @@ func (s *E2ETestSuite) isServerReady() bool {
 
 func (s *E2ETestSuite) TearDownSuite() {
 	p, _ := os.FindProcess(syscall.Getpid())
-	p.Signal(syscall.SIGINT)
+	s.LogIfError(p.Signal(syscall.SIGINT), "sending SIGINT failed")
 }
 
-// CreateServerUrl will append the given suffix to the base url of the API.
-func (s *E2ETestSuite) CreateServerUrl(format string, a ...interface{}) string {
+// CreateServerURL will append the given suffix to the base url of the API.
+func (s *E2ETestSuite) CreateServerURL(format string, a ...interface{}) string {
 	suffix := fmt.Sprintf(format, a...)
-	return fmt.Sprintf("%v:%v/api/v1%v", s.config.BaseUrl, s.config.HTTPPort, suffix)
+	return fmt.Sprintf("%v:%v/api/v1%v", s.config.BaseURL, s.config.HTTPPort, suffix)
 }
 
 func (s *E2ETestSuite) App() app.App {
@@ -112,4 +112,10 @@ func (s *E2ETestSuite) GenerateAlphanumeric(length int) string {
 	str, err := randutil.Alphanumeric(length)
 	s.Require().NoError(err)
 	return str
+}
+
+func (s *E2ETestSuite) LogIfError(err error, msg string) {
+	if err != nil {
+		s.log.Errorf("failed: %v. Details: %v", msg, err)
+	}
 }

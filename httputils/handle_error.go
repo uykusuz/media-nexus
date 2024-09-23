@@ -48,7 +48,7 @@ func HandleError(err error, response http.ResponseWriter, logger logger.Logger) 
 	}
 
 	if respondWithError {
-		RespondWithError(response, code, responseMessage)
+		RespondWithError(response, code, "%v", responseMessage)
 	}
 
 	return true

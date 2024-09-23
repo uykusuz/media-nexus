@@ -8,9 +8,9 @@ import (
 )
 
 type MediaMetadataDocument struct {
-	Id             string   `bson:"_id,omitempty"`
+	ID             string   `bson:"_id,omitempty"`
 	Name           string   `bson:"name,omitempty"`
-	TagIds         []string `bson:"tag_ids,omitempty"`
+	TagIDs         []string `bson:"tag_ids,omitempty"`
 	Checksum       string   `bson:"checksum,omitempty"`
 	UploadComplete bool     `bson:"upload_complete"`
 	LastUpdate     string   `bson:"last_update,omitempty"`
@@ -18,9 +18,9 @@ type MediaMetadataDocument struct {
 
 func NewMediaMetadataDocument(metadata model.MediaMetadata) *MediaMetadataDocument {
 	return &MediaMetadataDocument{
-		Id:             metadata.Id(),
+		ID:             metadata.ID(),
 		Name:           metadata.Name(),
-		TagIds:         metadata.TagIds(),
+		TagIDs:         metadata.TagIDs(),
 		Checksum:       metadata.Checksum(),
 		UploadComplete: metadata.UploadComplete(),
 		LastUpdate:     LastUpdateToString(metadata.LastUpdate()),
@@ -34,9 +34,9 @@ func (d *MediaMetadataDocument) ToModel() (model.MediaMetadata, error) {
 	}
 
 	return model.NewMediaMetadata(
-		model.MediaId(d.Id),
+		model.MediaID(d.ID),
 		d.Name,
-		d.TagIds,
+		d.TagIDs,
 		d.Checksum,
 		d.UploadComplete,
 		t,

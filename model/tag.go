@@ -1,6 +1,6 @@
 package model
 
 type Tag struct {
-	Id   TagId
+	ID   TagID
 	Name string
 }

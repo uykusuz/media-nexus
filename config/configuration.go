@@ -8,7 +8,7 @@ import (
 
 // Configuration defines options for the application.
 type Configuration struct {
-	BaseUrl  string
+	BaseURL  string
 	HTTPPort int
 
 	MongoDBURI                      string
@@ -17,13 +17,13 @@ type Configuration struct {
 	MediaMetadataCollection         string
 	MediaBucket                     string
 	MediaBucketRegion               string
-	GetMediaUrlLifetime             time.Duration
+	GetMediaURLLifetime             time.Duration
 	IncompleteMediaMetadataLifetime time.Duration
 }
 
 func NewConfiguration() Configuration {
 	return Configuration{
-		BaseUrl:                         "http://localhost",
+		BaseURL:                         "http://localhost",
 		HTTPPort:                        8081,
 		MongoDBURI:                      "http://localhost:27017",
 		MediaDatabase:                   "media",
@@ -31,13 +31,13 @@ func NewConfiguration() Configuration {
 		MediaMetadataCollection:         "media_metadata",
 		MediaBucket:                     "hintergarten.de-media-nexus-media",
 		MediaBucketRegion:               "eu-central-1",
-		GetMediaUrlLifetime:             15 * 60 * time.Second,
+		GetMediaURLLifetime:             15 * 60 * time.Second,
 		IncompleteMediaMetadataLifetime: 60 * time.Second,
 	}
 }
 
 func (c *Configuration) Validate() error {
-	if err := validation.IsValidStringProperty("<root>", "baseUrl", c.BaseUrl); err != nil {
+	if err := validation.IsValidStringProperty("<root>", "baseUrl", c.BaseURL); err != nil {
 		return err
 	}
 

@@ -24,9 +24,9 @@ func TestTags(t *testing.T) {
 func (s *tagsE2ETestSuite) TestCreateTag() {
 	ctx := s.Context()
 
-	tagId := s.createTag(s.GenerateAlphanumeric(10))
+	tagID := s.createTag(s.GenerateAlphanumeric(10))
 
-	err := s.App().TagRepo().DeleteTags(ctx, []model.TagId{tagId})
+	err := s.App().TagRepo().DeleteTags(ctx, []model.TagID{tagID})
 	s.Require().NoError(err)
 }
 
@@ -34,38 +34,36 @@ func (s *tagsE2ETestSuite) TestCreateTagIdempotency() {
 	ctx := s.Context()
 
 	tagName := s.GenerateAlphanumeric(10)
-	tagId1 := s.createTag(tagName)
+	tagID1 := s.createTag(tagName)
 
 	defer func() {
-		s.App().TagRepo().DeleteTags(ctx, []model.TagId{tagId1})
+		s.LogIfError(s.App().TagRepo().DeleteTags(ctx, []model.TagID{tagID1}), "delete tags")
 	}()
 
-	tagId2 := s.createTag(tagName)
+	tagID2 := s.createTag(tagName)
 
-	s.Equal(tagId1, tagId2)
+	s.Equal(tagID1, tagID2)
 }
 
 func (s *tagsE2ETestSuite) TestListTags() {
 	ctx := s.Context()
 
-	var tagIds []model.TagId
+	var tagIds []model.TagID
 	tagIds = append(tagIds, s.createTag(s.GenerateAlphanumeric(10)))
 	tagIds = append(tagIds, s.createTag(s.GenerateAlphanumeric(10)))
 
-	defer func() {
-		s.App().TagRepo().DeleteTags(ctx, tagIds)
-	}()
+	defer func() { s.LogIfError(s.App().TagRepo().DeleteTags(ctx, tagIds), "delete tags") }()
 
-	storedTagIds := s.listTags()
-	for _, tagId := range tagIds {
-		s.Contains(storedTagIds, tagId)
+	storedTagIDs := s.listTags()
+	for _, tagID := range tagIds {
+		s.Contains(storedTagIDs, tagID)
 	}
 }
 
-func (s *tagsE2ETestSuite) createTag(tagName string) model.TagId {
+func (s *tagsE2ETestSuite) createTag(tagName string) model.TagID {
 	reqStr := fmt.Sprintf(`{"name":"%v"}`, tagName)
 
-	req, err := http.NewRequest(http.MethodPost, s.CreateServerUrl("/tags"), strings.NewReader(reqStr))
+	req, err := http.NewRequest(http.MethodPost, s.CreateServerURL("/tags"), strings.NewReader(reqStr))
 	s.NoError(err)
 
 	req.Header.Set("Content-Type", "application/json")
@@ -81,13 +79,13 @@ func (s *tagsE2ETestSuite) createTag(tagName string) model.TagId {
 	decoder := json.NewDecoder(response.Body)
 	s.NoError(decoder.Decode(&postTagsResponse))
 
-	s.Require().NotEmpty(postTagsResponse.TagId)
+	s.Require().NotEmpty(postTagsResponse.TagID)
 
-	return model.TagId(postTagsResponse.TagId)
+	return model.TagID(postTagsResponse.TagID)
 }
 
-func (s *tagsE2ETestSuite) listTags() []model.TagId {
-	req, err := http.NewRequest(http.MethodGet, s.CreateServerUrl("/tags"), nil)
+func (s *tagsE2ETestSuite) listTags() []model.TagID {
+	req, err := http.NewRequest(http.MethodGet, s.CreateServerURL("/tags"), nil)
 	s.NoError(err)
 
 	req.Header.Set("Content-Type", "application/json")
@@ -103,9 +101,9 @@ func (s *tagsE2ETestSuite) listTags() []model.TagId {
 	decoder := json.NewDecoder(response.Body)
 	s.NoError(decoder.Decode(&postTagsResponse))
 
-	result := make([]model.TagId, 0, len(postTagsResponse))
+	result := make([]model.TagID, 0, len(postTagsResponse))
 	for _, t := range postTagsResponse {
-		result = append(result, model.TagId(t.Id))
+		result = append(result, model.TagID(t.ID))
 	}
 
 	return result

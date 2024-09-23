@@ -49,7 +49,7 @@ definitions:
         type: array
       name:
         type: string
-      tagIds:
+      tag_ids:
         items:
           type: string
         type: array

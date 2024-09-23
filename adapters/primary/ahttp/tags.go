@@ -45,13 +45,13 @@ func (e *tagsEndpoint) CreateTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tagId, err := e.tags.CreateTag(ctx, data.Name)
+	tagID, err := e.tags.CreateTag(ctx, data.Name)
 	if httputils.HandleError(err, w, e.log) {
 		return
 	}
 
 	response := &ahmodel.PostTagsResponse{
-		TagId: tagId,
+		TagID: tagID,
 	}
 
 	httputils.RespondWithJSON(http.StatusOK, response, w, e.log, true)

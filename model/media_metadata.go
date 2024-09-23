@@ -3,18 +3,18 @@ package model
 import "time"
 
 type MediaMetadata interface {
-	Id() MediaId
+	ID() MediaID
 	Name() string
-	TagIds() []TagId
+	TagIDs() []TagID
 	Checksum() string
 	UploadComplete() bool
 	LastUpdate() time.Time
 }
 
 func NewMediaMetadata(
-	id MediaId,
+	id MediaID,
 	name string,
-	tagIds []TagId,
+	tagIds []TagID,
 	checksum string,
 	uploadComplete bool,
 	lastUpdate time.Time,
@@ -30,15 +30,15 @@ func NewMediaMetadata(
 }
 
 type mediaMetadata struct {
-	id             MediaId
+	id             MediaID
 	name           string
-	tagIds         []TagId
+	tagIds         []TagID
 	checksum       string
 	uploadComplete bool
 	lastUpdate     time.Time
 }
 
-func (m *mediaMetadata) Id() MediaId {
+func (m *mediaMetadata) ID() MediaID {
 	return m.id
 }
 
@@ -46,7 +46,7 @@ func (m *mediaMetadata) Name() string {
 	return m.name
 }
 
-func (m *mediaMetadata) TagIds() []TagId {
+func (m *mediaMetadata) TagIDs() []TagID {
 	return m.tagIds
 }
 

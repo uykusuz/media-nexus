@@ -7,11 +7,11 @@ type PostTagsRequest struct {
 }
 
 type PostTagsResponse struct {
-	TagId string `json:"tag_id"`
+	TagID string `json:"tag_id"`
 }
 
 type Tag struct {
-	Id   string `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -19,7 +19,7 @@ func CreateGetTagsResponse(tags []*model.Tag) []*Tag {
 	response := make([]*Tag, 0, len(tags))
 
 	for _, tag := range tags {
-		oTag := &Tag{tag.Id, tag.Name}
+		oTag := &Tag{tag.ID, tag.Name}
 		response = append(response, oTag)
 	}
 

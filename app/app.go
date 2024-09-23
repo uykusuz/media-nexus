@@ -77,7 +77,7 @@ func (a *app) Setup() error {
 		a.tagRepo,
 		a.mediaMetadataRepo,
 		a.mediaRepo,
-		a.config.GetMediaUrlLifetime,
+		a.config.GetMediaURLLifetime,
 		a.config.IncompleteMediaMetadataLifetime,
 	)
 
@@ -93,7 +93,7 @@ func (a *app) Run() error {
 	}
 
 	a.log.Info("starting API ...")
-	return ahttp.StartAPI(a.log, a.config.BaseUrl, a.config.HTTPPort, a.mediaService, a.tagRepo)
+	return ahttp.StartAPI(a.log, a.config.BaseURL, a.config.HTTPPort, a.mediaService, a.tagRepo)
 }
 
 func (a *app) TagRepo() ports.TagRepository {

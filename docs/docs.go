@@ -266,7 +266,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "tagIds": {
+                "tag_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"

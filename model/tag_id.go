@@ -1,3 +1,3 @@
 package model
 
-type TagId = string
+type TagID = string

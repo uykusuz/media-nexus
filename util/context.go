@@ -5,8 +5,10 @@ import (
 	"media-nexus/logger"
 )
 
+type ContextValue string
+
 const (
-	contextLogger = "context"
+	contextLogger ContextValue = "context"
 )
 
 func WithLogger(ctx context.Context, logger logger.Logger) context.Context {

@@ -9,12 +9,6 @@ type healthEndpoint struct {
 	log logger.Logger
 }
 
-func newHealthEndpoint(
-	log logger.Logger,
-) (*healthEndpoint, error) {
-	return &healthEndpoint{log}, nil
-}
-
 // GetHealthLive godoc
 //
 //	@Summary	Retrieve live health status of server
