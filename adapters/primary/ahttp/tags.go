@@ -30,7 +30,7 @@ func (e *tagsEndpoint) createContext(r *http.Request) context.Context {
 //	@Param			request	body		ahmodel.PostTagsRequest	true	"tag to be created"
 //	@Success		200		{object}	ahmodel.PostTagsResponse
 //	@Failure		400		{object}	string
-//	@Router			/api/v1/tags [post]
+//	@Router			/tags [post]
 func (e *tagsEndpoint) CreateTag(w http.ResponseWriter, r *http.Request) {
 	ctx := e.createContext(r)
 
@@ -64,7 +64,7 @@ func (e *tagsEndpoint) CreateTag(w http.ResponseWriter, r *http.Request) {
 //	@Tags			tags
 //	@Produce		json
 //	@Success		200	{object}	[]ahmodel.Tag
-//	@Router			/api/v1/tags [get]
+//	@Router			/tags [get]
 func (e *tagsEndpoint) ListTags(w http.ResponseWriter, r *http.Request) {
 	ctx := e.createContext(r)
 

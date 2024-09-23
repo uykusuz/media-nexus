@@ -41,7 +41,7 @@ func (e *mediaEndpoint) createContext(r *http.Request) context.Context {
 //	@Param			request	body		postMediaRequest	true	"media to be created"
 //	@Success		200		{object}	ahmodel.PostMediaResponse
 //	@Failure		400		{object}	string
-//	@Router			/api/v1/media [post]
+//	@Router			/media [post]
 func (e *mediaEndpoint) CreateMedia(w http.ResponseWriter, r *http.Request) {
 	ctx := e.createContext(r)
 
@@ -108,7 +108,7 @@ func (e *mediaEndpoint) validateTagId(tagId string, w http.ResponseWriter) bool 
 //	@Param			tag_id	query		string	true	"tag ID to search for"
 //	@Success		200		{object}	ahmodel.GetMediaResponse
 //	@Failure		400		{object}	string
-//	@Router			/api/v1/media [get]
+//	@Router			/media [get]
 func (e *mediaEndpoint) GetMedia(w http.ResponseWriter, r *http.Request) {
 	ctx := e.createContext(r)
 

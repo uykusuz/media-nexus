@@ -22,7 +22,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/health/live": {
+        "/health/live": {
             "get": {
                 "produces": [
                     "application/json"
@@ -38,7 +38,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/health/ready": {
+        "/health/ready": {
             "get": {
                 "produces": [
                     "application/json"
@@ -54,7 +54,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/media": {
+        "/media": {
             "get": {
                 "description": "query media items based on some parameters",
                 "produces": [
@@ -127,7 +127,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/tags": {
+        "/tags": {
             "get": {
                 "description": "retrieve all tags",
                 "produces": [

@@ -66,7 +66,7 @@ info:
   title: media-nexus API
   version: "1.0"
 paths:
-  /api/v1/health/live:
+  /health/live:
     get:
       produces:
       - application/json
@@ -76,7 +76,7 @@ paths:
       summary: Retrieve live health status of server
       tags:
       - tags
-  /api/v1/health/ready:
+  /health/ready:
     get:
       produces:
       - application/json
@@ -86,7 +86,7 @@ paths:
       summary: Retrieve ready health status of server
       tags:
       - tags
-  /api/v1/media:
+  /media:
     get:
       description: query media items based on some parameters
       parameters:
@@ -134,7 +134,7 @@ paths:
       summary: Create media
       tags:
       - media
-  /api/v1/tags:
+  /tags:
     get:
       description: retrieve all tags
       produces:

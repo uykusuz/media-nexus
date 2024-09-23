@@ -25,6 +25,7 @@ all: deps compile
 deps:
 	$(GOGET) -v -t ./... || true
 	go install github.com/segmentio/golines@latest
+	go install github.com/swaggo/swag/cmd/swag@latest
 
 .PHONY: compile
 compile:

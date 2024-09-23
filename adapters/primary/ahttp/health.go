@@ -21,7 +21,7 @@ func newHealthEndpoint(
 //	@Tags		tags
 //	@Produce	json
 //	@Success	204
-//	@Router		/api/v1/health/live [get]
+//	@Router		/health/live [get]
 func (e *healthEndpoint) GetHealthLive(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -32,7 +32,7 @@ func (e *healthEndpoint) GetHealthLive(w http.ResponseWriter, r *http.Request) {
 //	@Tags		tags
 //	@Produce	json
 //	@Success	204
-//	@Router		/api/v1/health/ready [get]
+//	@Router		/health/ready [get]
 func (e *healthEndpoint) GetHealthReady(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }

@@ -68,6 +68,7 @@ graph LR
 
 ### Prerequisites
 
+* Go
 * AWS account configured that's able to manage (create, head, use) the configured media bucket
   * should be setup in `~/.aws/config` and `~/.aws/credentials`
   * or through environment variables (e.g. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`)
@@ -105,6 +106,7 @@ Similar to [build and run](#build-and-run) above, you need the aws profile and m
 present in the environment. You can export it manually or do the following:
 
 * edit `local-config.env` with your defaults
+* don't forget to check the file rights now of that file (e.g. 700)
 * execute `set -a && . ./local-config.env && set +a` to export them to the current shell
 
 #### Testing itself
