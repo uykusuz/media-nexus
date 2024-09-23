@@ -295,3 +295,5 @@ Viper has almost 27k stars on github, is actively maintained and checks all the 
 * traces
   * need to propagate downstream trace headers to upstream request
   * and need to implement solution (based on opentelemetry!?) for starting own traces
+* proper CI integration
+  * building, testing, packaging
